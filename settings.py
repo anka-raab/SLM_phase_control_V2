@@ -1,4 +1,4 @@
-SANTEC_SLM = False   # False for Hamamatsu SLM, True for Santec SLM
+SANTEC_SLM = True   # False for Hamamatsu SLM, True for Santec SLM
 
 wavelength = 800e-9
 
