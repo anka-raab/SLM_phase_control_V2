@@ -707,9 +707,8 @@ class type_vortex(base_type):
         x = np.linspace(-chip_width*500+dx, chip_width*500+dx, slm_size[1])
         y = np.linspace(-chip_height*500+dy, chip_height*500+dy, slm_size[0])
         [X, Y] = np.meshgrid(x, y)
-        theta = np.arctan(Y/X)
-        theta[X < 0] += np.pi
-        phase = theta*bit_depth/(2*np.pi)*vor
+        theta = np.arctan2(Y, X)
+        phase = vor*theta*bit_depth
         return phase
 
     def save_(self):
@@ -759,16 +758,12 @@ class type_zernike(base_type):
             if entry.get() != '':
                 coeffs[i] = float(entry.get())
         zsize, zdx, zdy = coeffs[10:]
-        x = np.linspace(-chip_width*500+zdx, chip_width*500+zdx, slm_size[1])
-        y = np.linspace(-chip_height*500+zdy, chip_height*500+zdy, slm_size[0])
+        x = np.linspace(-chip_width*100+zdx, chip_width*100+zdx, slm_size[1])
+        y = np.linspace(-chip_height*100+zdy, chip_height*100+zdy, slm_size[0])
         [X, Y] = np.meshgrid(x, y)
-        theta = np.arctan(Y/X)
-        theta[X < 0] += np.pi
+        theta = np.arctan2(Y, X)
         rho = np.sqrt(X**2+Y**2)/zsize
         tic2 = time.perf_counter()
-        R = [1, rho, (2*rho**2-1), rho**2, (3*rho**3-2*rho), rho**3]
-        Rnum = [1, 2, 2, 3, 4, 4, 5, 5, 6, 6]
-        mnum = [0, 1, -1, 0, 2, -2, 1, -1, 3, -3]
 
         p1 = coeffs[0]*1*np.cos(0*theta)
         p2 = coeffs[1]*rho*np.cos(1*theta)
@@ -784,7 +779,7 @@ class type_zernike(base_type):
         phase = p1+p2+p3+p4+p5+p6+p7+p8+p9+p10
         tic5 = time.perf_counter()
         print(tic5-tic2)
-        return phase
+        return phase*bit_depth
 
     def save_(self):
         dict = {varname: self.entries[i].get() 

@@ -141,7 +141,8 @@ class main_screen(object):
 
     def open_pub(self):
         self.ent_scr.config(state='disabled')
-        self.phase_map = self.get_phase()
+        self.phase_map = np.angle(np.exp(1j * self.get_phase()/bit_depth))
+
         if SANTEC_SLM: # Santec SLM Dispay routine
             self.pub_win = int(self.ent_scr.get())
             slm.SLM_Disp_Open(int(self.ent_scr.get()))
@@ -154,6 +155,7 @@ class main_screen(object):
                 self.pub_win = publish_window.pub_screen(
                     self, self.ent_scr.get(), self.phase_map)
         self.update_phase_plot(self.phase_map)
+
 
     def do_scan(self):
         if self.strvar_delay.get() == '':
@@ -445,7 +447,7 @@ class main_screen(object):
 
     def update_phase_plot(self, phase):
         self.ax1.clear()
-        self.ax1.imshow(phase % (bit_depth+1), cmap='twilight',
+        self.ax1.imshow(np.angle(np.exp(1j * phase/bit_depth)), cmap='twilight_shifted',
                         interpolation='None')
         self.img1.draw()
 

@@ -38,13 +38,12 @@ class prev_screen(object):
 
         x0 = 0  # center
         y0 = 0  # center
-        sigma = 17  # beam waist
+        sigma = 15  # beam waist
         A = 1  # peak of the beam
         res = ((X-x0)**2 + (Y-y0)**2)/(2*sigma**2)
         input_intensity = A * np.exp(-res)
-        input_intensity[np.sqrt(X**2+Y**2) < 12] = 0
 
-        input_phase = self.parent.get_phase()/bit_depth*2*np.pi
+        input_phase = self.parent.get_phase()/bit_depth
 
         tmp = abs(np.sqrt(input_intensity))*np.exp(1j*input_phase)
         paddedtmp = np.pad(tmp, 800)
@@ -57,7 +56,7 @@ class prev_screen(object):
         self.ax1.set_ylabel('Input')
         #
         self.ax2.clear()
-        self.ax2.imshow(input_phase)
+        self.ax2.imshow(np.angle(np.exp(1j * input_phase)), cmap='twilight_shifted', interpolation='None')
         self.ax2.set_title('Phase')
         #
         fsiz = np.divide(focus_int.shape, 2)

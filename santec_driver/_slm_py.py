@@ -192,6 +192,7 @@ def SLM_Disp_Data(display_number, data_array, width, height):
     c = data.ctypes.data_as(ct.POINTER((ct.c_ushort * height) * width)).contents
 
     # display on SLM
+
     ret = dll.SLM_Disp_Data(display_number, width, height, flags, c)
     SLM_STATUS(ret)
     
