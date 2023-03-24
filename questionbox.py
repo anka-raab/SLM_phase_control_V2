@@ -2,8 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 
 
-
-class popup_question():
+class PopupQuestion():
     '''
     Simple popup box to ask a question with two possible answers.
     Two possible answers can be specified.
@@ -26,8 +25,7 @@ class popup_question():
         The method returns True if this button is pressed.
 
     '''
-    
-        
+
     def __init__(self, callback, title, question, answer_true, answer_false):
         self.popup = tk.Toplevel()
         self.popup.title(title)
@@ -42,15 +40,15 @@ class popup_question():
         BC.pack(side="right", padx=10, pady=10)
         BF = ttk.Button(self.popup, text=answer_false, command=self.false_pressed)
         BF.pack(side="bottom", padx=10, pady=10)
-        self.popup.mainloop()    
-    
+        self.popup.mainloop()
+
     def true_pressed(self):
         self.popup.destroy()
         self.callback(True)
-        
+
     def false_pressed(self):
         self.popup.destroy()
         self.callback(False)
-    
+
     def cancelled(self):
         self.popup.destroy()

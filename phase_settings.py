@@ -837,7 +837,7 @@ class type_hologram(base_type):
 
     def open_generator(self):
         if self.gen_win is None:
-            self.gen_win = gs.GS_window(self)        
+            self.gen_win = gs.GSWindow(self)
         
     def phase(self):
         if self.img is not None:

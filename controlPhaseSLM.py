@@ -1,8 +1,8 @@
-from settings import SANTEC_SLM, slm_size, bit_depth
+from settings import slm_size, bit_depth
 import tkinter as tk
 from tkinter import ttk
 import tkinter.font as tkFont
-import tkinter.messagebox  as tkMbox
+import tkinter.messagebox as tkMbox
 import numpy as np
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 import json
@@ -10,21 +10,19 @@ import os
 import questionbox
 import phase_settings
 import preview_window
-if SANTEC_SLM: import santec_driver._slm_py as slm
-else:          import publish_window
+import santec_driver._slm_py as slm
 import feedbacker
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib
+
 matplotlib.use("TkAgg")
 
 
-
-class main_screen(object):
+class MainScreen(object):
     """"""
 
     def __init__(self, parent):
-        """Constructor"""
         self.main_win = parent
         self.main_win.protocol("WM_DELETE_WINDOW", self.exit_prog)
         self.main_win.title('SLM Phase Control')
@@ -48,10 +46,9 @@ class main_screen(object):
             self.main_win,
             text='Control Phase',
             font=tkFont.Font(family='Lucida Grande', size=20))
-        if SANTEC_SLM:
-            lbl_screen = tk.Label(frm_top, text='SLM display number:')
-        else:
-            lbl_screen = tk.Label(frm_top, text='SLM screen position:')
+
+        lbl_screen = tk.Label(frm_top, text='SLM display number:')
+
 
         # Creating buttons
         but_fbck = tk.Button(frm_bot, text='Feedbacker', command=self.open_fbck)
@@ -62,11 +59,8 @@ class main_screen(object):
         but_load = tk.Button(frm_topb, text='Load Settings', command=self.load)
 
         # Creating entry
-        if SANTEC_SLM:
-            self.ent_scr = tk.Spinbox(frm_top, width=5, from_=1, to=8)
-        else:
-            self.ent_scr = tk.Entry(frm_top, width=15)
-            self.ent_scr.insert(tk.END, '+right+down')
+
+        self.ent_scr = tk.Spinbox(frm_top, width=5, from_=1, to=8)
 
         # Setting up general structure
         lbl_title.grid(row=0, column=0, sticky='ew')
@@ -101,15 +95,29 @@ class main_screen(object):
         but_exit.grid(row=0, column=3, padx=10, pady=5, ipadx=5)
 
         # binding keys
-        def lefthandler(event): return self.left_arrow()
+        def lefthandler(event):
+            return self.left_arrow()
+
         self.main_win.bind('a', lefthandler)
-        def righthandler(event): return self.right_arrow()
+
+        def righthandler(event):
+            return self.right_arrow()
+
         self.main_win.bind('d', righthandler)
-        def uphandler(event): return self.up_arrow()
+
+        def uphandler(event):
+            return self.up_arrow()
+
         self.main_win.bind('w', uphandler)
-        def downhandler(event): return self.down_arrow()
+
+        def downhandler(event):
+            return self.down_arrow()
+
         self.main_win.bind('s', downhandler)
-        def escapehandler(event): return self.escape_key()
+
+        def escapehandler(event):
+            return self.escape_key()
+
         self.main_win.bind('<Escape>', escapehandler)
 
         # loading last settings
@@ -117,23 +125,21 @@ class main_screen(object):
 
     def open_fbck(self):
         if self.fbck_win is None:
-            q_str1 = 'The feedbacker needs to look at fringes between the two beams.'
+            q_str1 = 'The Feedbacker needs to look at fringes between the two beams.'
             q_str2 = 'Do you want to use a camera with spatial fringes or a spectrometer with spectral fringes?'
             q_str = q_str1 + '\n' + q_str2
-            questionbox.popup_question(self.open_feedback_window, 'Choose feedback method', 
-                                       q_str, 'Open Camera', 'Open Spectrometer')
-       
+            questionbox.PopupQuestion(self.open_feedback_window, 'Choose feedback method',
+                                      q_str, 'Open Camera', 'Open Spectrometer')
+
     def open_feedback_window(self, answer):
-        if SANTEC_SLM:
-            self.fbck_win = feedbacker.feedbacker(self, slm, answer)
-        else:
-            self.fbck_win = feedbacker.feedbacker(self, None, answer)
+        self.fbck_win = feedbacker.Feedbacker(self, slm, answer)
+
 
     def open_prev(self):
         if self.prev_win is not None:
             self.prev_win.update_plots()
         else:
-            self.prev_win = preview_window.prev_screen(self)
+            self.prev_win = preview_window.PrevScreen(self)
 
     def prev_win_closed(self):
         print('prev closed')
@@ -141,21 +147,13 @@ class main_screen(object):
 
     def open_pub(self):
         self.ent_scr.config(state='disabled')
-        self.phase_map = np.angle(np.exp(1j * self.get_phase()/bit_depth))
+        self.phase_map = np.angle(np.exp(1j * self.get_phase() / bit_depth))
 
-        if SANTEC_SLM: # Santec SLM Dispay routine
-            self.pub_win = int(self.ent_scr.get())
-            slm.SLM_Disp_Open(int(self.ent_scr.get()))
-            slm.SLM_Disp_Data(int(self.ent_scr.get()), self.phase_map,
-                              slm_size[1], slm_size[0])
-        else: # Hamamatsu SLM Display routine
-            if self.pub_win is not None:
-                self.pub_win.update_img(self.phase_map)
-            else:
-                self.pub_win = publish_window.pub_screen(
-                    self, self.ent_scr.get(), self.phase_map)
+        self.pub_win = int(self.ent_scr.get())
+        slm.SLM_Disp_Open(int(self.ent_scr.get()))
+        slm.SLM_Disp_Data(int(self.ent_scr.get()), self.phase_map, slm_size[1], slm_size[0])
+
         self.update_phase_plot(self.phase_map)
-
 
     def do_scan(self):
         if self.strvar_delay.get() == '':
@@ -168,7 +166,7 @@ class main_screen(object):
             if self.var_stop_scan.get():
                 self.var_stop_scan.set(0)
                 return
-            root.after(int(delay*1000), var.set, 1)
+            root.after(int(delay * 1000), var.set, 1)
             self.load(filepath)
 
             # keeps to one window and updates for each filepath
@@ -185,9 +183,8 @@ class main_screen(object):
 
     def pub_win_closed(self):
         self.ent_scr.config(state='normal')
-        if SANTEC_SLM:
-            slm.SLM_Disp_Close(int(self.ent_scr.get()))
-        self.pub_win = None
+        slm.SLM_Disp_Close(int(self.ent_scr.get()))
+
 
     def setup_box(self, frm_):
         frm_box = tk.LabelFrame(frm_, text='Phases enabled')
@@ -207,7 +204,6 @@ class main_screen(object):
                                        variable=self.vars[ind],
                                        onvalue=1, offvalue=0)
             self.box_.grid(row=ind, sticky='w')
-
 
     def get_phase(self):
         '''gets the phase from the active phase types'''
@@ -279,7 +275,7 @@ class main_screen(object):
         self.cbx_scpar.current(0)
         vcmd = (self.frm_side.register(self.callback))
         self.strvar_val = tk.StringVar()
-        ent_val = tk.Entry(self.so_frm,  width=10,  validate='all',
+        ent_val = tk.Entry(self.so_frm, width=10, validate='all',
                            validatecommand=(vcmd, '%d', '%P', '%S'),
                            textvariable=self.strvar_val)
         self.strvar_delay = tk.StringVar()
@@ -305,7 +301,6 @@ class main_screen(object):
         self.but_crt.grid(row=2, column=0, sticky='ew')
         but_openload.grid(row=2, column=1, columnspan=2, sticky='ew')
 
-
         self.but_scan.grid(row=5, column=0, padx=5, pady=5)
         but_stop_scan.grid(row=5, column=1, columnspan=2, padx=5, pady=5)
 
@@ -323,7 +318,7 @@ class main_screen(object):
 
     def callback(self, action, P, text):
         # action=1 -> insert
-        if(action == '1'):
+        if (action == '1'):
             if text in '0123456789.-+:':
                 return True
             else:
@@ -432,22 +427,20 @@ class main_screen(object):
             self.phase_refs[2].down_()
             self.open_pub()
             self.main_win.after(500, self.main_win.focus_force)
-    
+
     def escape_key(self):
         print('esc pressed')
         if self.pub_win is not None:
             q_str = 'Do you want to close the SLM Publication Window?\nThe SLM screen will instead show the desktop background.'
             result = tkMbox.askquestion('Close Publication Window', q_str)
             if result == 'yes':
-                if not SANTEC_SLM:
-                    self.pub_win.win.destroy()
                 self.pub_win_closed()
                 self.ax1.clear()
                 self.img1.draw()
 
     def update_phase_plot(self, phase):
         self.ax1.clear()
-        self.ax1.imshow(np.angle(np.exp(1j * phase/bit_depth)), cmap='twilight_shifted',
+        self.ax1.imshow(np.angle(np.exp(1j * self.get_phase() / bit_depth)), cmap='twilight_shifted',
                         interpolation='None')
         self.img1.draw()
 
@@ -461,6 +454,6 @@ class main_screen(object):
 
 root = tk.Tk()
 
-main = main_screen(root)
+main = MainScreen(root)
 
 root.mainloop()
