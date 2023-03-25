@@ -13,7 +13,9 @@ import draw_polygon
 from simple_pid import PID
 import threading
 from pynput import keyboard
+
 matplotlib.use("TkAgg")
+
 
 class Feedbacker(object):
     """works back and forth with publish_window"""
@@ -30,8 +32,6 @@ class Feedbacker(object):
             title = 'SLM Phase Control - Feedbacker (spectral)'
         self.win.title(title)
         self.win.protocol("WM_DELETE_WINDOW", self.on_close)
-        if not SANTEC_SLM:
-            self.win.geometry('500x950+300+100')
         self.rect_id = 0
 
         # creating frames
@@ -118,10 +118,9 @@ class Feedbacker(object):
             frm_ratio, width=11, validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_flat)
-        if SANTEC_SLM:
-            text = '4'
-        else:
-            text = '8'
+
+        text = '4'
+
         if not CAMERA: text = '17'
         self.strvar_indexfft = tk.StringVar(self.win, text)
         lbl_indexfft = tk.Label(frm_ratio, text='Index fft:')
@@ -130,19 +129,16 @@ class Feedbacker(object):
             frm_ratio, width=11,
             textvariable=self.strvar_indexfft)
         self.lbl_angle = tk.Label(frm_ratio, text='angle')
-        if SANTEC_SLM:
-            text = '400, 1050'
-        else:
-            text = '255, 420'
+
+        text = '400, 1050'
+
         if not CAMERA: text = '1950'
         self.strvar_area1x = tk.StringVar(self.win, text)
         self.ent_area1x = tk.Entry(
             frm_ratio, width=11,
             textvariable=self.strvar_area1x)
-        if SANTEC_SLM:
-            text = '630, 650'
-        else:
-            text = '470, 480'
+
+        text = '630, 650'
         if not CAMERA: text = '2100'
         self.strvar_area1y = tk.StringVar(self.win, text)
         self.ent_area1y = tk.Entry(
@@ -343,12 +339,10 @@ class Feedbacker(object):
         else:
             phi = 0
         phase_map = self.parent.phase_map + phi / 2 * bit_depth
-        if SANTEC_SLM:
-            self.slm_lib.SLM_Disp_Open(int(self.parent.ent_scr.get()))
-            self.slm_lib.SLM_Disp_Data(int(self.parent.ent_scr.get()), phase_map,
-                                       slm_size[1], slm_size[0])
-        else:
-            self.parent.pub_win.publish_img(phase_map)
+
+        self.slm_lib.SLM_Disp_Open(int(self.parent.ent_scr.get()))
+        self.slm_lib.SLM_Disp_Data(int(self.parent.ent_scr.get()), phase_map, slm_size[1], slm_size[0])
+
 
     def init_cam(self):
         print("")

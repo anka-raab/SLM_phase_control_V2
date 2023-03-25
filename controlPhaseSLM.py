@@ -49,7 +49,6 @@ class MainScreen(object):
 
         lbl_screen = tk.Label(frm_top, text='SLM display number:')
 
-
         # Creating buttons
         but_fbck = tk.Button(frm_bot, text='Feedbacker', command=self.open_fbck)
         but_prev = tk.Button(frm_bot, text='Preview', command=self.open_prev)
@@ -134,7 +133,6 @@ class MainScreen(object):
     def open_feedback_window(self, answer):
         self.fbck_win = feedbacker.Feedbacker(self, slm, answer)
 
-
     def open_prev(self):
         if self.prev_win is not None:
             self.prev_win.update_plots()
@@ -184,7 +182,6 @@ class MainScreen(object):
     def pub_win_closed(self):
         self.ent_scr.config(state='normal')
         slm.SLM_Disp_Close(int(self.ent_scr.get()))
-
 
     def setup_box(self, frm_):
         frm_box = tk.LabelFrame(frm_, text='Phases enabled')
@@ -431,7 +428,8 @@ class MainScreen(object):
     def escape_key(self):
         print('esc pressed')
         if self.pub_win is not None:
-            q_str = 'Do you want to close the SLM Publication Window?\nThe SLM screen will instead show the desktop background.'
+            q_str = 'Do you want to close the SLM Publication Window?\nThe SLM screen will instead show the desktop ' \
+                    'background.'
             result = tkMbox.askquestion('Close Publication Window', q_str)
             if result == 'yes':
                 self.pub_win_closed()

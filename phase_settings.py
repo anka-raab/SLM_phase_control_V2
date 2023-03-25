@@ -1,75 +1,133 @@
-from settings import slm_size, bit_depth, chip_width, chip_height, wavelength
+import time
+import numpy as np
 import tkinter as tk
 from tkinter import ttk
-import numpy as np
 from tkinter.filedialog import askopenfilename
 import matplotlib.image as mpimg
-import time
+from settings import slm_size, bit_depth, chip_width, chip_height, wavelength
 import gerchberg_saxton as gs
-
 
 print('types in')
 
-
-types = ['Backgr.', 'Flat', 'Tilt', 'Binary', 'Lens',
-             'Multi', 'Vortex', 'Zernike', 'Image', 'Hologram']
-
+types = ['Background.', 'Flat', 'Tilt', 'Binary', 'Lens',
+         'Multi', 'Vortex', 'Zernike', 'Image', 'Hologram']
 
 
 def new_type(frm_mid, typ):
+    """
+    Factory function for creating different types of phase.
+
+    Parameters:
+    -----------
+    frm_mid : numpy.ndarray
+        The input numpy array.
+    typ : str
+        The type of numpy array to be created. Possible values are:
+        'Flat', 'Tilt', 'Binary', 'Background', 'Lens', 'Multi', 'Vortex', 'Zernike', 'Image', 'Hologram'.
+
+    Returns:
+    --------
+    numpy.ndarray
+        The numpy array of the specified type.
+    """
     if typ == 'Flat':
-        return type_flat(frm_mid)
+        return TypeFlat(frm_mid)
     elif typ == 'Tilt':
-        return type_tilt(frm_mid)
+        return TypeTilt(frm_mid)
     elif typ == 'Binary':
-        return type_binary(frm_mid)
-    elif typ == 'Backgr.':
-        return type_bg(frm_mid)
+        return TypeBinary(frm_mid)
+    elif typ == 'Background.':
+        return TypeBackground(frm_mid)
     elif typ == 'Lens':
-        return type_lens(frm_mid)
+        return TypeLens(frm_mid)
     elif typ == 'Multi':
-        return type_multibeams_cb(frm_mid)
+        return TypeMultibeam(frm_mid)
     elif typ == 'Vortex':
-        return type_vortex(frm_mid)
+        return TypeVortex(frm_mid)
     elif typ == 'Zernike':
-        return type_zernike(frm_mid)
+        return TypeZernike(frm_mid)
     elif typ == 'Image':
-        return type_img(frm_mid)
+        return TypeImage(frm_mid)
     elif typ == 'Hologram':
-        return type_hologram(frm_mid)
+        return TypeHologram(frm_mid)
 
 
-class base_type(object):
-    '''base class for all type_phase classes'''
-    
+class BaseType(object):
+    """
+    Base class for all TypePhase classes.
+
+    Attributes:
+    -----------
+    img : ndarray
+        The image data loaded from the file.
+    """
+
     def _read_file(self, filepath):
+        """
+        Load image data from file.
+
+        Parameters:
+        -----------
+        filepath : str
+            The path to the file to be loaded.
+
+        """
+        # Check if filepath is provided
         if not filepath:
-            return
+            return  # Return None if filepath is not provided
+
         try:
+            # Check if the file is a csv file
             if filepath[-4:] == '.csv':
                 try:
-                    self.img = np.loadtxt(filepath, delimiter=',',skiprows=1,
-                                          usecols=np.arange(1920)+1)
+                    # If it is a csv file, load it using numpy loadtxt function
+                    # Skip the first row (header) and read all columns except the first column
+                    self.img = np.loadtxt(filepath, delimiter=',', skiprows=1, usecols=np.arange(1920) + 1)
                 except:
+                    # If there's an error in loading the csv file, try loading it without skipping the header row
                     np.loadtxt(filepath, delimiter=',')
             else:
+                # If the file is not a csv file, load it using matplotlib imread function
                 self.img = mpimg.imread(filepath)
-                if len(self.img.shape) == 3: # multi color image
+                if len(self.img.shape) == 3:  # Check if the image has 3 dimensions (multicolor image)
+                    # If the image has 3 dimensions, convert it to grayscale by summing the values across the color
+                    # channels
                     self.img = self.img.sum(axis=2)
         except:
+            # If there's an error in loading the file, print an error message
             print('File "' + filepath + '" not found')
-        
+
     def open_file(self):
+        """
+        Open a file dialog to choose a file and load its data.
+        """
         filepath = askopenfilename(
-            filetypes=[('CSV data arrays', '*.csv'), ('Image Files', '*.bmp'), 
+            filetypes=[('CSV data arrays', '*.csv'), ('Image Files', '*.bmp'),
                        ('All Files', '*.*')]
         )
         self._read_file(filepath)
         self.lbl_file['text'] = f'{filepath}'
-    
+
     def callback(self, action, P, text):
+        """
+        Callback function for text input validation.
+
+        Parameters:
+        -----------
+        action : str
+            The action to be performed on the text (e.g. insert, delete).
+        P : str
+            The current value of the text.
+        text : str
+            The new text to be inserted.
+
+        Returns:
+        --------
+        bool
+            True if the text is valid, False otherwise.
+        """
         # action=1 -> insert
-        if(action == '1'):
+        if action == '1':
             if text in '0123456789.-+':
                 try:
                     float(P)
@@ -82,30 +140,81 @@ class base_type(object):
             return True
 
     def name_(self):
+        """
+        Get the name of the object.
+
+        Returns:
+        --------
+        str
+            The name of the object.
+        """
         return self.name
-    
+
     def close_(self):
+        """
+        Close the object's frame.
+        """
         self.frm_.destroy()
 
 
-class type_bg(base_type):
-    """shows background settings for phase"""
+class TypeBackground(BaseType):
+    """
+    A class for managing the background settings for a phase.
+
+    Parameters
+    ----------
+    parent : Tk object
+        The parent window for the frame.
+
+    Attributes
+    ----------
+    name : str
+        The name of the background type.
+    frm_ : Tk frame object
+        The frame that contains the background settings.
+    lbl_file : Tk label object
+        The label that displays the selected file.
+
+    """
 
     def __init__(self, parent):
+        """
+        Initialize the TypeBackground class.
+
+        Parameters
+        ----------
+        parent : Tk object
+            The parent window for the frame.
+
+        """
         self.name = 'Background'
         self.frm_ = tk.Frame(parent)
         self.frm_.grid(row=0, column=0, sticky='nsew')
+
+        # Create a label frame for the background settings
         lbl_frm = tk.LabelFrame(self.frm_, text='Background')
         lbl_frm.grid(row=0, column=0, sticky='ew')
 
+        # Create a button for opening the background file
         btn_open = tk.Button(lbl_frm, text='Open Background file',
                              command=self.open_file)
+        btn_open.grid(row=0)
+
+        # Create a label for displaying the selected file
         self.lbl_file = tk.Label(lbl_frm, text='', wraplength=400,
                                  justify='left', foreground='gray')
-        btn_open.grid(row=0)
         self.lbl_file.grid(row=1)
 
     def phase(self):
+        """
+        Return the phase data based on the selected background file.
+
+        Returns
+        -------
+        phase : numpy array
+            The phase data.
+
+        """
         if self.lbl_file['text'] != '':
             phase = self.img
         else:
@@ -113,53 +222,165 @@ class type_bg(base_type):
         return phase
 
     def save_(self):
+        """
+        Save the current state of the TypeBackground object.
+
+        Returns
+        -------
+        dict : dict
+            A dictionary of the current state.
+
+        """
         dict = {'filepath': self.lbl_file['text']}
         return dict
 
     def load_(self, dict):
+        """
+        Load a saved state for the TypeBackground object.
+
+        Parameters
+        ----------
+        dict : dict
+            A dictionary of the saved state.
+
+        """
         self.lbl_file['text'] = dict['filepath']
         self._read_file(dict['filepath'])
 
 
-class type_flat(base_type):
-    """shows flat settings for phase"""
+class TypeFlat(BaseType):
+    """
+    A class for managing the flat settings for a phase.
+
+    Parameters
+    ----------
+    parent : Tk object
+        The parent window for the frame.
+
+    Attributes
+    ----------
+    name : str
+        The name of the flat type.
+    frm_ : Tk frame object
+        The frame that contains the flat settings.
+    ent_flat : Tk entry object
+        The entry box for the phase shift value.
+
+    """
 
     def __init__(self, parent):
+        """
+        Initialize the TypeFlat class.
+
+        Parameters
+        ----------
+        parent : Tk object
+            The parent window for the frame.
+
+        """
         self.name = 'Flat'
         self.frm_ = tk.Frame(parent)
         self.frm_.grid(row=1, column=0, sticky='nsew')
+
+        # Create a label frame for the flat settings
         lbl_frm = tk.LabelFrame(self.frm_, text='Flat')
         lbl_frm.grid(row=0, column=0, sticky='ew')
 
-        lbl_phi = tk.Label(lbl_frm, 
-                           text='Phase shift ('+str(bit_depth)+'=2pi):')
+        # Create a label and entry box for the phase shift value
+        lbl_phi = tk.Label(lbl_frm,
+                           text='Phase shift (' + str(bit_depth) + '=2pi):')
         vcmd = (parent.register(self.callback))
         self.strvar_flat = tk.StringVar()
         self.ent_flat = tk.Entry(
-            lbl_frm, width=11,  validate='all',
+            lbl_frm, width=11, validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_flat)
         lbl_phi.grid(row=0, column=0, sticky='e', padx=(10, 0), pady=5)
         self.ent_flat.grid(row=0, column=1, sticky='w', padx=(0, 10))
 
     def phase(self):
+        """
+        Return the phase data based on the selected flat settings.
+
+        Returns
+        -------
+        phase : numpy array
+            The phase data.
+
+        """
         if self.ent_flat.get() != '':
             phi = float(self.ent_flat.get())
         else:
             phi = 0
-        phase = np.ones(slm_size)*phi
+        phase = np.ones(slm_size) * phi
         return phase
 
     def save_(self):
+        """
+        Save the current state of the TypeFlat object.
+
+        Returns
+        -------
+        dict : dict
+            A dictionary of the current state.
+
+        """
         dict = {'flat_phase': self.ent_flat.get()}
         return dict
 
     def load_(self, dict):
+        """
+        Load a saved state for the TypeFlat object.
+
+        Parameters
+        ----------
+        dict : dict
+            A dictionary of the saved state.
+
+        """
         self.strvar_flat.set(dict['flat_phase'])
 
 
-class type_tilt(base_type):
-    """shows the settings for redirection"""
+class TypeTilt(BaseType):
+    """
+    A class to set the parameters for redirection.
+
+    Attributes
+    ----------
+    name : str
+        The name of the type of tilt.
+    frm_ : tkinter Frame
+        A tkinter Frame object.
+    strvar_xdir : tkinter StringVar
+        A tkinter variable for the steepness along x-direction.
+    strvar_ydir : tkinter StringVar
+        A tkinter variable for the steepness along y-direction.
+    strvar_tstep : tkinter StringVar
+        A tkinter variable for the step per click.
+    ent_xdir : tkinter Entry
+        A tkinter Entry object for the steepness along x-direction.
+    ent_ydir : tkinter Entry
+        A tkinter Entry object for the steepness along y-direction.
+    ent_tstep : tkinter Entry
+        A tkinter Entry object for the step per click.
+
+    Methods
+    -------
+    phase()
+        Calculates the phase.
+    left_()
+        Decreases the steepness along the x-direction.
+    right_()
+        Increases the steepness along the x-direction.
+    up_()
+        Increases the steepness along the y-direction.
+    down_()
+        Decreases the steepness along the y-direction.
+    save_()
+        Returns a dictionary containing the values of ent_xdir and ent_ydir.
+    load_(dict)
+        Loads the values of ent_xdir and ent_ydir from a dictionary.
+    """
 
     def __init__(self, parent):
         self.name = 'Tilt'
@@ -171,23 +392,23 @@ class type_tilt(base_type):
         # Creating objects
         lbl_xdir = tk.Label(lbl_frm, text='Steepness along x-direction:')
         lbl_ydir = tk.Label(lbl_frm, text='Steepness along y-direction:')
-        lbl_bit = tk.Label(lbl_frm, 
-                           text='('+str(bit_depth)+' corresponds to 2pi Rad)')
+        lbl_bit = tk.Label(lbl_frm,
+                           text='(' + str(bit_depth) + ' corresponds to 2pi Rad)')
         lbl_step = tk.Label(lbl_frm, text='(wasd) Step per click:')
         vcmd = (parent.register(self.callback))
         self.strvar_xdir = tk.StringVar()
         self.strvar_ydir = tk.StringVar()
         self.ent_xdir = tk.Entry(
-            lbl_frm, width=11,  validate='all',
+            lbl_frm, width=11, validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_xdir)
         self.ent_ydir = tk.Entry(
-            lbl_frm, width=11,  validate='all',
+            lbl_frm, width=11, validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_ydir)
         self.strvar_tstep = tk.StringVar()
         self.ent_tstep = tk.Entry(
-            lbl_frm, width=11,  validate='all',
+            lbl_frm, width=11, validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_tstep)
 
@@ -201,17 +422,33 @@ class type_tilt(base_type):
         self.ent_tstep.grid(row=3, column=1, sticky='w', padx=(0, 10))
 
     def phase(self):
-        xdir = self.ent_xdir.get()
-        ydir = self.ent_ydir.get()
+        """
+        Return the phase data based on the selected tilt settings.
 
-        if ydir != '' and float(ydir) != 0:
-            lim = np.ones(slm_size[1]) * float(ydir)*(slm_size[1]-1)/2
+        Attributes
+        ----------
+        ent_xdir : tkinter Entry
+            A tkinter Entry object for the steepness along x-direction.
+        ent_ydir : tkinter Entry
+            A tkinter Entry object for the steepness along y-direction.
+
+        Returns
+        -------
+        phase : numpy array
+            The phase data.
+
+        """
+        x_dir = self.ent_xdir.get()
+        y_dir = self.ent_ydir.get()
+
+        if y_dir != '' and float(y_dir) != 0:
+            lim = np.ones(slm_size[1]) * float(y_dir) * (slm_size[1] - 1) / 2
             phy = np.linspace(-lim, +lim, slm_size[0], axis=0)
         else:
             phy = np.zeros(slm_size)
 
-        if xdir != '' and float(xdir) != 0:
-            lim = np.ones(slm_size[0]) * float(xdir)*(slm_size[0]-1)/2
+        if x_dir != '' and float(x_dir) != 0:
+            lim = np.ones(slm_size[0]) * float(x_dir) * (slm_size[0] - 1) / 2
             phx = np.linspace(-lim, +lim, slm_size[1], axis=1)
         else:
             phx = np.zeros(slm_size)
@@ -219,36 +456,66 @@ class type_tilt(base_type):
         return phx + phy
 
     def left_(self):
+        """
+        Increase the value of `strvar_xdir` by the value of `strvar_tstep`.
+        """
         tmp = float(self.strvar_xdir.get()) + float(self.strvar_tstep.get())
         self.strvar_xdir.set(tmp)
 
     def right_(self):
+        """
+        Decreases the value of `strvar_xdir` by the value of `strvar_tstep`.
+        """
         tmp = float(self.strvar_xdir.get()) - float(self.strvar_tstep.get())
         self.strvar_xdir.set(tmp)
 
     def up_(self):
+        """
+        Increase the value of `strvar_ydir` by the value of `strvar_tstep`.
+        """
         tmp = float(self.strvar_ydir.get()) + float(self.strvar_tstep.get())
         self.strvar_ydir.set(tmp)
 
     def down_(self):
+        """
+        Decreases the value of `strvar_ydir` by the value of `strvar_tstep`.
+        """
         tmp = float(self.strvar_ydir.get()) - float(self.strvar_tstep.get())
         self.strvar_ydir.set(tmp)
 
     def save_(self):
+        """
+        Save the current state of the TypeTilt object.
+
+        Returns
+        -------
+        dict : dict
+            A dictionary of the current state.
+
+        """
         dict = {'ent_xdir': self.ent_xdir.get(),
                 'ent_ydir': self.ent_ydir.get()}
         return dict
 
     def load_(self, dict):
+        """
+        Load a saved state for the TypeTilt object.
+
+        Parameters
+        ----------
+        dict : dict
+            A dictionary of the saved state.
+
+        """
         self.strvar_xdir.set(dict['ent_xdir'])
         self.strvar_ydir.set(dict['ent_ydir'])
 
 
-class type_binary(base_type):
+class TypeBinary(BaseType):
     """shows binary settings for phase"""
 
     def __init__(self, parent):
-        self.name ='Binary'
+        self.name = 'Binary'
         self.frm_ = tk.Frame(parent)
         self.frm_.grid(row=3, column=0, sticky='nsew')
         lbl_frm = tk.LabelFrame(self.frm_, text='Binary')
@@ -266,7 +533,7 @@ class type_binary(base_type):
         self.ent_area = tk.Spinbox(lbl_frm, width=12, from_=0, to=100)
         vcmd = (parent.register(self.callback))
         self.strvar_phi = tk.StringVar()
-        self.ent_phi = tk.Entry(lbl_frm, width=12,  validate='all',
+        self.ent_phi = tk.Entry(lbl_frm, width=12, validate='all',
                                 validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_phi)
 
@@ -286,19 +553,19 @@ class type_binary(base_type):
             area = 0
         if self.ent_phi.get() != '':
             tmp = float(self.ent_phi.get())
-            phi = tmp*bit_depth/2  # Converting to 0-2pi
+            phi = tmp * bit_depth / 2  # Converting to 0-2pi
         else:
             phi = 0
 
         phase_mat = np.zeros(slm_size)
 
         if direc == 'Horizontal':
-            cutpixel = int(round(slm_size[0]*area/100))
-            tmp = np.ones([cutpixel, slm_size[1]])*phi
+            cutpixel = int(round(slm_size[0] * area / 100))
+            tmp = np.ones([cutpixel, slm_size[1]]) * phi
             phase_mat[0:cutpixel, :] = tmp
         elif direc == 'Vertical':
-            cutpixel = int(round(slm_size[1]*area/100))
-            tmp = np.ones([slm_size[0], cutpixel])*phi
+            cutpixel = int(round(slm_size[1] * area / 100))
+            tmp = np.ones([slm_size[0], cutpixel]) * phi
             phase_mat[:, 0:cutpixel] = tmp
         del tmp
         return phase_mat
@@ -319,7 +586,7 @@ class type_binary(base_type):
         self.strvar_phi.set(dict['phi'])
 
 
-class type_lens(base_type):
+class TypeLens(BaseType):
     """shows lens settings for phase"""
 
     def __init__(self, parent):
@@ -335,7 +602,7 @@ class type_lens(base_type):
         # creating entries
         vcmd = (parent.register(self.callback))
         self.strvar_ben = tk.StringVar()
-        self.ent_ben = tk.Entry(lbl_frm, width=5,  validate='all',
+        self.ent_ben = tk.Entry(lbl_frm, width=5, validate='all',
                                 validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_ben)
 
@@ -351,13 +618,13 @@ class type_lens(base_type):
             ben = 0
 
         radsign = np.sign(ben)
-        rad = 2/np.abs(ben)  # R=2*f
-        x = np.linspace(-chip_width/2, chip_width/2, slm_size[1])
-        y = np.linspace(-chip_height/2, chip_height/2, slm_size[0])
+        rad = 2 / np.abs(ben)  # R=2*f
+        x = np.linspace(-chip_width / 2, chip_width / 2, slm_size[1])
+        y = np.linspace(-chip_height / 2, chip_height / 2, slm_size[0])
         [X, Y] = np.meshgrid(x, y)
-        R = np.sqrt(X**2+Y**2)  # radius on a 2d array
-        Z = radsign*(np.sqrt(rad**2+R**2)-rad)
-        Z_phi = Z/(wavelength)*bit_depth  # translating meters to wavelengths and phase
+        R = np.sqrt(X ** 2 + Y ** 2)  # radius on a 2d array
+        Z = radsign * (np.sqrt(rad ** 2 + R ** 2) - rad)
+        Z_phi = Z / (wavelength) * bit_depth  # translating meters to wavelengths and phase
         del X, Y, R, Z
         return Z_phi
 
@@ -369,7 +636,7 @@ class type_lens(base_type):
         self.strvar_ben.set(dict['ben'])
 
 
-class type_multibeams_cb(base_type):
+class TypeMultibeam(BaseType):
     """shows multibeam checkerboard settings for phase"""
 
     def __init__(self, parent):
@@ -396,50 +663,50 @@ class type_multibeams_cb(base_type):
         lbl_horspr = tk.Label(frm_spr, text='Horizontal spread:')
         lbl_verspr = tk.Label(frm_spr, text='Vertical spread:')
         lbl_cph = tk.Label(frm_sprrad, text='Hyp.phase diff')
-        lbl_rad = tk.Label(frm_rad, text='Phase['+str(bit_depth)+']:')
+        lbl_rad = tk.Label(frm_rad, text='Phase[' + str(bit_depth) + ']:')
         lbl_amp = tk.Label(frm_rad, text='Choose beam:')
         lbl_pxsiz = tk.Label(frm_pxsiz, text='pixel size:')
 
         # creating entries
         vcmd = (parent.register(self.callback))
         self.strvar_n = tk.StringVar()
-        self.ent_n = tk.Entry(frm_n, width=5,  validate='all',
+        self.ent_n = tk.Entry(frm_n, width=5, validate='all',
                               validatecommand=(vcmd, '%d', '%P', '%S'),
                               textvariable=self.strvar_n)
         self.strvar_hpt = tk.StringVar()
-        self.ent_hpt = tk.Entry(frm_spr, width=5,  validate='all',
+        self.ent_hpt = tk.Entry(frm_spr, width=5, validate='all',
                                 validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_hpt)
         self.strvar_vpt = tk.StringVar()
-        self.ent_vpt = tk.Entry(frm_spr, width=5,  validate='all',
+        self.ent_vpt = tk.Entry(frm_spr, width=5, validate='all',
                                 validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_vpt)
         self.strvar_rad = tk.StringVar()
-        self.ent_rad = tk.Entry(frm_rad, width=5,  validate='all',
+        self.ent_rad = tk.Entry(frm_rad, width=5, validate='all',
                                 validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_rad)
         self.strvar_amp = tk.StringVar()
-        self.ent_amp = tk.Entry(frm_rad, width=5,  validate='all',
+        self.ent_amp = tk.Entry(frm_rad, width=5, validate='all',
                                 validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_amp)
         self.strvar_hit = tk.StringVar()
-        self.ent_hit = tk.Entry(frm_int, width=5,  validate='all',
+        self.ent_hit = tk.Entry(frm_int, width=5, validate='all',
                                 validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_hit)
         self.strvar_vit = tk.StringVar()
-        self.ent_vit = tk.Entry(frm_int, width=5,  validate='all',
+        self.ent_vit = tk.Entry(frm_int, width=5, validate='all',
                                 validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_vit)
         self.strvar_his = tk.StringVar()
-        self.ent_his = tk.Entry(frm_int, width=5,  validate='all',
+        self.ent_his = tk.Entry(frm_int, width=5, validate='all',
                                 validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_his)
         self.strvar_vis = tk.StringVar()
-        self.ent_vis = tk.Entry(frm_int, width=5,  validate='all',
+        self.ent_vis = tk.Entry(frm_int, width=5, validate='all',
                                 validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_vis)
         self.strvar_pxsiz = tk.StringVar()
-        self.ent_pxsiz = tk.Entry(frm_pxsiz, width=5,  validate='all',
+        self.ent_pxsiz = tk.Entry(frm_pxsiz, width=5, validate='all',
                                   validatecommand=(vcmd, '%d', '%P', '%S'),
                                   textvariable=self.strvar_pxsiz)
 
@@ -496,10 +763,10 @@ class type_multibeams_cb(base_type):
             ytilt = float(self.ent_vpt.get())
         else:
             ytilt = 0
-        tilts = np.arange(-n+1, n+1, 2)  # excluding the last
-        xtilts = tilts*xtilt/2
-        ytilts = tilts*ytilt/2
-        phases = np.zeros([slm_size[0], slm_size[1], n*n])
+        tilts = np.arange(-n + 1, n + 1, 2)  # excluding the last
+        xtilts = tilts * xtilt / 2
+        ytilts = tilts * ytilt / 2
+        phases = np.zeros([slm_size[0], slm_size[1], n * n])
         ind = 0
         for xdir in xtilts:
             for ydir in ytilts:
@@ -518,7 +785,7 @@ class type_multibeams_cb(base_type):
             amp = 0
         if tmprad != 0:
             phases[:, :, amp] = tmprad + phases[:, :, amp]
-            phases[:, :, amp+1] = tmprad + phases[:, :, amp+1]
+            phases[:, :, amp + 1] = tmprad + phases[:, :, amp + 1]
 
         # tic3 = time.perf_counter()
         # setting up for intensity control
@@ -538,40 +805,40 @@ class type_multibeams_cb(base_type):
             yis = float(self.ent_vis.get())
         else:
             yis = 0
-        intensities = np.ones(n**2)
-        totnum = np.ceil((slm_size[0]*(slm_size[1]+n)/(n**2)))  # nbr of pixels for each phase
+        intensities = np.ones(n ** 2)
+        totnum = np.ceil((slm_size[0] * (slm_size[1] + n) / (n ** 2)))  # nbr of pixels for each phase
         #          plus n in second dimension to account for noneven placement
-        phase_nbr = np.outer(np.arange(n**2), np.ones([int(totnum)]))
+        phase_nbr = np.outer(np.arange(n ** 2), np.ones([int(totnum)]))
 
         # modifying linear intensities
         if xit != 0:
-            xits = np.linspace(-((n-1)/2*xit), ((n-1)/2*xit), num=n)
+            xits = np.linspace(-((n - 1) / 2 * xit), ((n - 1) / 2 * xit), num=n)
         else:
             xits = np.zeros(n)
         if yit != 0:
-            yits = np.linspace(-((n-1)/2*yit), ((n-1)/2*yit), num=n)
+            yits = np.linspace(-((n - 1) / 2 * yit), ((n - 1) / 2 * yit), num=n)
         else:
             yits = np.zeros(n)
         ii = 0
         for tmpx in xits:
-            intensities[n*ii:n*(ii+1)] = (tmpx + yits + 1)
+            intensities[n * ii:n * (ii + 1)] = (tmpx + yits + 1)
             ii += 1
 
         # tic4 = time.perf_counter()
         # modifying square intensities
         spread = tilts
-        xiss = -xis * (spread**2 - spread[0]**2)
-        yiss = -yis * (spread**2 - spread[0]**2)
+        xiss = -xis * (spread ** 2 - spread[0] ** 2)
+        yiss = -yis * (spread ** 2 - spread[0] ** 2)
         ii = 0
         for tmpx in xiss:
-            intensities[n*ii:n*(ii+1)] += (tmpx + yiss + 1)
+            intensities[n * ii:n * (ii + 1)] += (tmpx + yiss + 1)
             ii += 1
 
         # tic5 = time.perf_counter()
         # creating the intensity arrays (which phase to have at which pixel)
         intensities[intensities < 0] = 0
-        intensities = intensities/np.sum(intensities)*n**2  # normalize
-        tmpint = intensities-1
+        intensities = intensities / np.sum(intensities) * n ** 2  # normalize
+        tmpint = intensities - 1
         beam = 0
         strong_beams = []
         strong_beams_int = []
@@ -586,13 +853,13 @@ class type_multibeams_cb(base_type):
                 weak_beams_int.append(intens)
             beam += 1
         # normalize to one
-        strong_beams_int = strong_beams_int/np.sum(strong_beams_int)
+        strong_beams_int = strong_beams_int / np.sum(strong_beams_int)
         for wbeam, wbeam_int in zip(weak_beams, weak_beams_int):
-            nbr_pixels = np.ceil(np.abs(wbeam_int)*totnum)  # nbrpxls to change
-            nbr_each = np.ceil(nbr_pixels*strong_beams_int)
+            nbr_pixels = np.ceil(np.abs(wbeam_int) * totnum)  # nbrpxls to change
+            nbr_each = np.ceil(nbr_pixels * strong_beams_int)
             strt = 0
             for nbr, sbeam in zip(nbr_each, strong_beams):
-                phase_nbr[int(wbeam), strt:(strt+int(nbr))] = sbeam
+                phase_nbr[int(wbeam), strt:(strt + int(nbr))] = sbeam
                 strt += int(nbr)
         rng = np.random.default_rng()
         rng.shuffle(phase_nbr, axis=1)  # mixing so the changed are not tgether
@@ -606,20 +873,20 @@ class type_multibeams_cb(base_type):
         yrange = np.arange(0, slm_size[0], 1)
         tot_phase = np.zeros(slm_size)
         [X, Y] = np.meshgrid(xrange, yrange)
-        ind_phase_tmp = (np.floor(X/pxsiz) % n)*n + (np.floor(Y/pxsiz) % n)
+        ind_phase_tmp = (np.floor(X / pxsiz) % n) * n + (np.floor(Y / pxsiz) % n)
         ind_phase = ind_phase_tmp.astype(int)
 
         # tic7 = time.perf_counter()
         ind_phase2 = ind_phase.copy()
-        for ii in range(n**2):
+        for ii in range(n ** 2):
             max_nbr = np.count_nonzero(ind_phase == ii)
             if max_nbr <= phase_nbr[0, :].size:
                 ind_phase2[ind_phase == ii] = phase_nbr[ii, 0:max_nbr]
             else:
-                extra = ii*np.ones([max_nbr-phase_nbr[0, :].size])
+                extra = ii * np.ones([max_nbr - phase_nbr[0, :].size])
                 ind_phase2[ind_phase == ii] = np.append(phase_nbr[ii, :], extra)
 
-        for ii in range(n**2):
+        for ii in range(n ** 2):
             ii_phase = phases[:, :, ii]
             tot_phase[ind_phase2 == ii] = ii_phase[ind_phase2 == ii]
         # toc = time.perf_counter()
@@ -636,13 +903,13 @@ class type_multibeams_cb(base_type):
 
     def phase_tilt(self, xdir, ydir):
         if xdir != '' and float(xdir) != 0:
-            lim = np.ones(slm_size[0]) * float(xdir)*(slm_size[0]-1)/2
+            lim = np.ones(slm_size[0]) * float(xdir) * (slm_size[0] - 1) / 2
             phx = np.linspace(-lim, +lim, slm_size[1], axis=1)
         else:
             phx = np.zeros(slm_size)
 
         if ydir != '' and float(ydir) != 0:
-            lim = np.ones(slm_size[1]) * float(ydir)*(slm_size[1]-1)/2
+            lim = np.ones(slm_size[1]) * float(ydir) * (slm_size[1] - 1) / 2
             phy = np.linspace(-lim, +lim, slm_size[0], axis=0)
         else:
             phy = np.zeros(slm_size)
@@ -675,7 +942,7 @@ class type_multibeams_cb(base_type):
         self.strvar_pxsiz.set(dict['pxsiz'])
 
 
-class type_vortex(base_type):
+class TypeVortex(BaseType):
     """shows vortex settings for phase"""
 
     def __init__(self, parent):
@@ -684,12 +951,12 @@ class type_vortex(base_type):
         self.frm_.grid(row=6, column=0, sticky='nsew')
         lbl_frm = tk.LabelFrame(self.frm_, text='Vortex')
         lbl_frm.grid(row=0, column=0, sticky='ew')
-        
+
         lbl_texts = ['Vortex order:', 'dx [mm]:', 'dy [mm]:']
         labels = [tk.Label(lbl_frm, text=lbl_text) for lbl_text in lbl_texts]
         vcmd = (parent.register(self.callback))
         self.strvars = [tk.StringVar() for lbl_text in lbl_texts]
-        self.entries = [tk.Entry(lbl_frm, width=11,  validate='all',
+        self.entries = [tk.Entry(lbl_frm, width=11, validate='all',
                                  validatecommand=(vcmd, '%d', '%P', '%S'),
                                  textvariable=strvar)
                         for strvar in self.strvars]
@@ -704,11 +971,11 @@ class type_vortex(base_type):
             if entry.get() != '':
                 coeffs[i] = float(entry.get())
         vor, dx, dy = coeffs
-        x = np.linspace(-chip_width*500+dx, chip_width*500+dx, slm_size[1])
-        y = np.linspace(-chip_height*500+dy, chip_height*500+dy, slm_size[0])
+        x = np.linspace(-chip_width * 500 + dx, chip_width * 500 + dx, slm_size[1])
+        y = np.linspace(-chip_height * 500 + dy, chip_height * 500 + dy, slm_size[0])
         [X, Y] = np.meshgrid(x, y)
         theta = np.arctan2(Y, X)
-        phase = vor*theta*bit_depth
+        phase = vor * theta * bit_depth
         return phase
 
     def save_(self):
@@ -719,7 +986,7 @@ class type_vortex(base_type):
         self.strvars[0].set(dict['vort_ord'])
 
 
-class type_zernike(base_type):
+class TypeZernike(BaseType):
     """shows zernike settings for phase"""
 
     def __init__(self, parent):
@@ -728,26 +995,26 @@ class type_zernike(base_type):
         self.frm_.grid(row=7, column=0, sticky='nsew')
         lbl_frm = tk.LabelFrame(self.frm_, text='Zernike')
         lbl_frm.grid(row=0, column=0, sticky='ew')
-        
+
         self.varnames = ['z1coef', 'z2coef', 'z3coef', 'z4coef', 'z5coef',
                          'z6coef', 'z7coef', 'z8coef', 'z9coef', 'z10coef',
                          'zsize', 'zdx', 'zdy']
-        lbl_texts = ['Z_00 koeff:', 'Z_11 koeff:', 'Z_1-1 koeff:', 
+        lbl_texts = ['Z_00 koeff:', 'Z_11 koeff:', 'Z_1-1 koeff:',
                      'Z_20 koeff:', 'Z_22 koeff:', 'Z_2-2 koeff:',
                      'Z_31 koeff:', 'Z_3-1 koeff:', 'Z_33 koeff:',
                      'Z_3-3 koeff:', 'Z size:', 'dx [mm]:', 'dy [mm]:']
-        labels = [tk.Label(lbl_frm, text=lbl_text) for lbl_text in lbl_texts]        
+        labels = [tk.Label(lbl_frm, text=lbl_text) for lbl_text in lbl_texts]
         vcmd = (parent.register(self.callback))
         self.strvars = [tk.StringVar() for lbl_text in lbl_texts]
-        self.entries = [tk.Entry(lbl_frm, width=11,  validate='all',
+        self.entries = [tk.Entry(lbl_frm, width=11, validate='all',
                                  validatecommand=(vcmd, '%d', '%P', '%S'),
                                  textvariable=strvar)
                         for strvar in self.strvars]
         for ind, label in enumerate(labels):
-            label.grid(row=ind%10, column=2*int(ind/10), 
+            label.grid(row=ind % 10, column=2 * int(ind / 10),
                        sticky='e', padx=(10, 0), pady=5)
         for ind, entry in enumerate(self.entries):
-            entry.grid(row=ind%10, column=2*int(ind/10)+1,
+            entry.grid(row=ind % 10, column=2 * int(ind / 10) + 1,
                        sticky='w', padx=(0, 10))
 
     def phase(self):
@@ -758,31 +1025,31 @@ class type_zernike(base_type):
             if entry.get() != '':
                 coeffs[i] = float(entry.get())
         zsize, zdx, zdy = coeffs[10:]
-        x = np.linspace(-chip_width*100+zdx, chip_width*100+zdx, slm_size[1])
-        y = np.linspace(-chip_height*100+zdy, chip_height*100+zdy, slm_size[0])
+        x = np.linspace(-chip_width * 100 + zdx, chip_width * 100 + zdx, slm_size[1])
+        y = np.linspace(-chip_height * 100 + zdy, chip_height * 100 + zdy, slm_size[0])
         [X, Y] = np.meshgrid(x, y)
         theta = np.arctan2(Y, X)
-        rho = np.sqrt(X**2+Y**2)/zsize
+        rho = np.sqrt(X ** 2 + Y ** 2) / zsize
         tic2 = time.perf_counter()
 
-        p1 = coeffs[0]*1*np.cos(0*theta)
-        p2 = coeffs[1]*rho*np.cos(1*theta)
-        p3 = coeffs[2]*rho*np.sin(1*theta)
-        p4 = coeffs[3]*(2*rho**2-1)*np.cos(0*theta)
-        p5 = coeffs[4]*rho**2*np.cos(2*theta)
-        p6 = coeffs[5]*rho**2*np.sin(2*theta)
-        p7 = coeffs[6]*(3*rho**3-2*rho)*np.cos(1*theta)
-        p8 = coeffs[7]*(3*rho**3-2*rho)*np.sin(1*theta)
-        p9 = coeffs[8]*rho**3*np.cos(3*theta)
-        p10 = coeffs[9]*rho**3*np.sin(3*theta)
+        p1 = coeffs[0] * 1 * np.cos(0 * theta)
+        p2 = coeffs[1] * rho * np.cos(1 * theta)
+        p3 = coeffs[2] * rho * np.sin(1 * theta)
+        p4 = coeffs[3] * (2 * rho ** 2 - 1) * np.cos(0 * theta)
+        p5 = coeffs[4] * rho ** 2 * np.cos(2 * theta)
+        p6 = coeffs[5] * rho ** 2 * np.sin(2 * theta)
+        p7 = coeffs[6] * (3 * rho ** 3 - 2 * rho) * np.cos(1 * theta)
+        p8 = coeffs[7] * (3 * rho ** 3 - 2 * rho) * np.sin(1 * theta)
+        p9 = coeffs[8] * rho ** 3 * np.cos(3 * theta)
+        p10 = coeffs[9] * rho ** 3 * np.sin(3 * theta)
         # tic4 = time.perf_counter()
-        phase = p1+p2+p3+p4+p5+p6+p7+p8+p9+p10
+        phase = p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10
         tic5 = time.perf_counter()
-        print(tic5-tic2)
-        return phase*bit_depth
+        print(tic5 - tic2)
+        return phase * bit_depth
 
     def save_(self):
-        dict = {varname: self.entries[i].get() 
+        dict = {varname: self.entries[i].get()
                 for i, varname in enumerate(self.varnames)}
         return dict
 
@@ -791,13 +1058,13 @@ class type_zernike(base_type):
             self.strvars[i].set(dict[varname])
 
 
-class type_img(type_bg):
+class TypeImage(TypeBackground):
     """shows image settings for phase"""
 
     def __init__(self, parent):
         self.name = 'Image'
         self.frm_ = tk.Frame(parent)
-        self.frm_.grid(row=8, column=0)#, sticky='nsew')
+        self.frm_.grid(row=8, column=0)  # , sticky='nsew')
         lbl_frm = tk.LabelFrame(self.frm_, text='Image')
         lbl_frm.grid(row=0, column=0, sticky='ew')
 
@@ -808,7 +1075,7 @@ class type_img(type_bg):
         self.lbl_file.grid(row=1)
 
 
-class type_hologram(base_type):
+class TypeHologram(BaseType):
     """shows hologram settings for phase"""
 
     def __init__(self, parent):
@@ -825,11 +1092,11 @@ class type_hologram(base_type):
                              command=self.open_file)
         self.lbl_file = tk.Label(lbl_frm, text='', wraplength=400,
                                  justify='left', foreground='gray')
-        lbl_act_file = tk.Label(lbl_frm, text='Active Hologram file:', 
+        lbl_act_file = tk.Label(lbl_frm, text='Active Hologram file:',
                                 justify='left')
         btn_generate = tk.Button(lbl_frm, text='Launch Hologram Generator',
                                  command=self.open_generator)
-        
+
         btn_open.grid(row=0)
         lbl_act_file.grid(row=1)
         self.lbl_file.grid(row=2)
@@ -838,7 +1105,7 @@ class type_hologram(base_type):
     def open_generator(self):
         if self.gen_win is None:
             self.gen_win = gs.GSWindow(self)
-        
+
     def phase(self):
         if self.img is not None:
             phase = self.img
