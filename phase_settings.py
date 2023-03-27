@@ -1,4 +1,3 @@
-import time
 import numpy as np
 import tkinter as tk
 from tkinter import ttk
@@ -159,7 +158,7 @@ class BaseType(object):
 
 class TypeBackground(BaseType):
     """
-    A class for managing the background settings for a phase.
+    A class for managing the background settings for a phase calculation.
 
     Parameters
     ----------
@@ -174,9 +173,7 @@ class TypeBackground(BaseType):
         The frame that contains the background settings.
     lbl_file : Tk label object
         The label that displays the selected file.
-
     """
-
     def __init__(self, parent):
         """
         Initialize the TypeBackground class.
@@ -250,7 +247,7 @@ class TypeBackground(BaseType):
 
 class TypeFlat(BaseType):
     """
-    A class for managing the flat settings for a phase.
+    A class for managing the flat settings for a phase calculation.
 
     Parameters
     ----------
@@ -343,7 +340,7 @@ class TypeFlat(BaseType):
 
 class TypeTilt(BaseType):
     """
-    A class to set the parameters for redirection.
+    A class to set the parameters for a tilted phase.
 
     Attributes
     ----------
@@ -363,26 +360,18 @@ class TypeTilt(BaseType):
         A tkinter Entry object for the steepness along y-direction.
     ent_tstep : tkinter Entry
         A tkinter Entry object for the step per click.
-
-    Methods
-    -------
-    phase()
-        Calculates the phase.
-    left_()
-        Decreases the steepness along the x-direction.
-    right_()
-        Increases the steepness along the x-direction.
-    up_()
-        Increases the steepness along the y-direction.
-    down_()
-        Decreases the steepness along the y-direction.
-    save_()
-        Returns a dictionary containing the values of ent_xdir and ent_ydir.
-    load_(dict)
-        Loads the values of ent_xdir and ent_ydir from a dictionary.
     """
 
     def __init__(self, parent):
+        """
+        Initialize the TypeTilt class.
+
+        Parameters
+        ----------
+        parent : Tk object
+            The parent window for the frame.
+
+        """
         self.name = 'Tilt'
         self.frm_ = tk.Frame(parent)
         self.frm_.grid(row=2, column=0, sticky='nsew')
@@ -424,13 +413,6 @@ class TypeTilt(BaseType):
     def phase(self):
         """
         Return the phase data based on the selected tilt settings.
-
-        Attributes
-        ----------
-        ent_xdir : tkinter Entry
-            A tkinter Entry object for the steepness along x-direction.
-        ent_ydir : tkinter Entry
-            A tkinter Entry object for the steepness along y-direction.
 
         Returns
         -------
@@ -512,9 +494,32 @@ class TypeTilt(BaseType):
 
 
 class TypeBinary(BaseType):
-    """shows binary settings for phase"""
+    """
+    A class that represents binary settings for phase.
 
+    Attributes
+    ----------
+    name : str
+        The name of the class.
+    frm_ : Tkinter Frame
+        The frame object representing the binary settings for phase.
+    cbx_dir : ttk.Combobox
+        The combobox object for selecting the split direction.
+    ent_area : Tkinter Spinbox
+        The spinbox object for entering the area amount in percentage.
+    ent_phi : Tkinter Entry
+        The entry object for entering the phase change in pi.
+    """
     def __init__(self, parent):
+        """
+        Initialize the TypeBinary class.
+
+        Parameters
+        ----------
+        parent : Tk object
+            The parent window for the frame.
+
+        """
         self.name = 'Binary'
         self.frm_ = tk.Frame(parent)
         self.frm_.grid(row=3, column=0, sticky='nsew')
@@ -546,6 +551,14 @@ class TypeBinary(BaseType):
         self.ent_phi.grid(row=2, column=1, sticky='w', padx=(0, 10))
 
     def phase(self):
+        """
+        Generate the phase matrix based on the binary settings for the phase.
+
+        Returns
+        -------
+        numpy.ndarray
+            The phase matrix generated based on the binary settings.
+        """
         direc = self.cbx_dir.get()
         if self.ent_area.get() != '':
             area = float(self.ent_area.get())
@@ -571,12 +584,28 @@ class TypeBinary(BaseType):
         return phase_mat
 
     def save_(self):
+        """
+        Save the current state of the TypeBinary object.
+
+        Returns
+        -------
+        dict : dict
+            A dictionary of the current state.
+        """
         dict = {'direc': self.cbx_dir.get(),
                 'area': self.ent_area.get(),
                 'phi': self.ent_phi.get()}
         return dict
 
     def load_(self, dict):
+        """
+        Load a saved state for the TypeBinary object.
+
+        Parameters
+        ----------
+        dict : dict
+            A dictionary of the saved state.
+        """
         if dict['direc'] != 'Vertical' and dict['direc'] != 'Horizontal':
             dict['direc'] = 'Vertical'
         tmpind = self.cbx_dir['values'].index(dict['direc'])
@@ -587,9 +616,30 @@ class TypeBinary(BaseType):
 
 
 class TypeLens(BaseType):
-    """shows lens settings for phase"""
+    """
+    A class that represents the lens settings for phase.
 
+    Attributes
+    ----------
+    name : str
+        The name of the class, which is "Lens".
+    frm_ : tk.Frame
+        A tkinter frame object.
+    strvar_ben : tk.StringVar
+        A tkinter variable that stores the bending strength.
+    ent_ben : tk.Entry
+        A tkinter entry object for bending strength input.
+    """
     def __init__(self, parent):
+        """
+        Initialize the TypeLens class.
+
+        Parameters
+        ----------
+        parent : Tk object
+            The parent window for the frame.
+
+        """
         self.name = 'Lens'
         self.frm_ = tk.Frame(parent)
         self.frm_.grid(row=4, column=0, sticky='nsew')
@@ -602,8 +652,7 @@ class TypeLens(BaseType):
         # creating entries
         vcmd = (parent.register(self.callback))
         self.strvar_ben = tk.StringVar()
-        self.ent_ben = tk.Entry(lbl_frm, width=5, validate='all',
-                                validatecommand=(vcmd, '%d', '%P', '%S'),
+        self.ent_ben = tk.Entry(lbl_frm, width=5, validate='all', validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_ben)
 
         # setup
@@ -611,35 +660,116 @@ class TypeLens(BaseType):
         self.ent_ben.grid(row=0, column=1, sticky='w', padx=(0, 10))
 
     def phase(self):
-        # getting the hyperbolical curve on the phases
+        """
+        Returns the phase calculated via the hyperbolic curves.
+
+        Returns
+        -------
+        Z_phi : numpy.ndarray
+            An array that contains the calculated phase.
+        """
         if self.ent_ben.get() != '':
             ben = float(self.ent_ben.get())
         else:
             ben = 0
 
-        radsign = np.sign(ben)
+        rad_sign = np.sign(ben)
         rad = 2 / np.abs(ben)  # R=2*f
         x = np.linspace(-chip_width / 2, chip_width / 2, slm_size[1])
         y = np.linspace(-chip_height / 2, chip_height / 2, slm_size[0])
         [X, Y] = np.meshgrid(x, y)
         R = np.sqrt(X ** 2 + Y ** 2)  # radius on a 2d array
-        Z = radsign * (np.sqrt(rad ** 2 + R ** 2) - rad)
-        Z_phi = Z / (wavelength) * bit_depth  # translating meters to wavelengths and phase
+        Z = rad_sign * (np.sqrt(rad ** 2 + R ** 2) - rad)
+        Z_phi = Z / wavelength * bit_depth  # translating meters to wavelengths and phase
         del X, Y, R, Z
+
         return Z_phi
 
     def save_(self):
+        """
+        Save the current state of the TypeLens object.
+
+        Returns
+        -------
+        dict : dict
+            A dictionary of the current state.
+        """
         dict = {'ben': self.ent_ben.get()}
         return dict
 
     def load_(self, dict):
+        """
+        Load a saved state for the TypeLens object.
+
+        Parameters
+        ----------
+        dict : dict
+            A dictionary of the saved state.
+        """
         self.strvar_ben.set(dict['ben'])
 
 
 class TypeMultibeam(BaseType):
-    """shows multibeam checkerboard settings for phase"""
+    """
+    Represents multibeam checkerboard settings for phase.
 
+    Attributes
+    ----------
+    name : str
+        The name of the multibeam setting.
+    frm_ : tkinter.Frame
+        The parent frame for the multibeam setting.
+    strvar_n : tkinter.StringVar
+        A string variable for the 'n' entry field.
+    ent_n : tkinter.Entry
+        The 'n' entry field.
+    strvar_hpt : tkinter.StringVar
+        A string variable for the horizontal spread entry field.
+    ent_hpt : tkinter.Entry
+        The horizontal spread entry field.
+    strvar_vpt : tkinter.StringVar
+        A string variable for the vertical spread entry field.
+    ent_vpt : tkinter.Entry
+        The vertical spread entry field.
+    strvar_rad : tkinter.StringVar
+        A string variable for the phase entry field.
+    ent_rad : tkinter.Entry
+        The phase entry field.
+    strvar_amp : tkinter.StringVar
+        A string variable for the beam selection entry field.
+    ent_amp : tkinter.Entry
+        The beam selection entry field.
+    strvar_hit : tkinter.StringVar
+        A string variable for the horizontal intensity tilt entry field.
+    ent_hit : tkinter.Entry
+        The horizontal intensity tilt entry field.
+    strvar_vit : tkinter.StringVar
+        A string variable for the vertical intensity tilt entry field.
+    ent_vit : tkinter.Entry
+        The vertical intensity tilt entry field.
+    strvar_his : tkinter.StringVar
+        A string variable for the horizontal intensity curve entry field.
+    ent_his : tkinter.Entry
+        The horizontal intensity curve entry field.
+    strvar_vis : tkinter.StringVar
+        A string variable for the vertical intensity curve entry field.
+    ent_vis : tkinter.Entry
+        The vertical intensity curve entry field.
+    strvar_pxsiz : tkinter.StringVar
+        A string variable for the pixel size entry field.
+    ent_pxsiz : tkinter.Entry
+        The pixel size entry field.
+    """
     def __init__(self, parent):
+        """
+        Initialize the TypeMultibeam class.
+
+        Parameters
+        ----------
+        parent : Tk object
+            The parent window for the frame.
+
+        """
         self.name = 'Multibeam'
         self.frm_ = tk.Frame(parent)
         self.frm_.grid(row=5, column=0, sticky='nsew')
@@ -748,7 +878,15 @@ class TypeMultibeam(BaseType):
         self.ent_pxsiz.grid(row=0, column=1, sticky='w')
 
     def phase(self):
-        # tic = time.perf_counter()
+        """
+        Computes the phase for the multibeam class.
+
+        Returns
+        -------
+        numpy.ndarray
+            Array of phase values computed.
+        """
+
         if self.ent_n.get() != '':
             n = int(self.ent_n.get())
         else:
@@ -773,7 +911,6 @@ class TypeMultibeam(BaseType):
                 phases[:, :, ind] = self.phase_tilt(xdir, ydir)
                 ind += 1
 
-        # tic2 = time.perf_counter()
         # getting the hyperbolical curve on the phases
         if self.ent_rad.get() != '':
             tmprad = float(self.ent_rad.get())
@@ -787,7 +924,6 @@ class TypeMultibeam(BaseType):
             phases[:, :, amp] = tmprad + phases[:, :, amp]
             phases[:, :, amp + 1] = tmprad + phases[:, :, amp + 1]
 
-        # tic3 = time.perf_counter()
         # setting up for intensity control
         if self.ent_hit.get() != '':
             xit = float(self.ent_hit.get())
@@ -824,7 +960,6 @@ class TypeMultibeam(BaseType):
             intensities[n * ii:n * (ii + 1)] = (tmpx + yits + 1)
             ii += 1
 
-        # tic4 = time.perf_counter()
         # modifying square intensities
         spread = tilts
         xiss = -xis * (spread ** 2 - spread[0] ** 2)
@@ -834,7 +969,6 @@ class TypeMultibeam(BaseType):
             intensities[n * ii:n * (ii + 1)] += (tmpx + yiss + 1)
             ii += 1
 
-        # tic5 = time.perf_counter()
         # creating the intensity arrays (which phase to have at which pixel)
         intensities[intensities < 0] = 0
         intensities = intensities / np.sum(intensities) * n ** 2  # normalize
@@ -852,6 +986,7 @@ class TypeMultibeam(BaseType):
                 weak_beams.append(beam)
                 weak_beams_int.append(intens)
             beam += 1
+
         # normalize to one
         strong_beams_int = strong_beams_int / np.sum(strong_beams_int)
         for wbeam, wbeam_int in zip(weak_beams, weak_beams_int):
@@ -862,12 +997,13 @@ class TypeMultibeam(BaseType):
                 phase_nbr[int(wbeam), strt:(strt + int(nbr))] = sbeam
                 strt += int(nbr)
         rng = np.random.default_rng()
-        rng.shuffle(phase_nbr, axis=1)  # mixing so the changed are not tgether
+        rng.shuffle(phase_nbr, axis=1)  # mixing so the changed are not together
         # tic6 = time.perf_counter()
         if self.ent_pxsiz.get() != '':
             pxsiz = int(self.ent_pxsiz.get())
         else:
             pxsiz = 1
+
         # creating the total phase by adding the different ones
         xrange = np.arange(0, slm_size[1], 1)
         yrange = np.arange(0, slm_size[0], 1)
@@ -876,7 +1012,6 @@ class TypeMultibeam(BaseType):
         ind_phase_tmp = (np.floor(X / pxsiz) % n) * n + (np.floor(Y / pxsiz) % n)
         ind_phase = ind_phase_tmp.astype(int)
 
-        # tic7 = time.perf_counter()
         ind_phase2 = ind_phase.copy()
         for ii in range(n ** 2):
             max_nbr = np.count_nonzero(ind_phase == ii)
@@ -889,19 +1024,25 @@ class TypeMultibeam(BaseType):
         for ii in range(n ** 2):
             ii_phase = phases[:, :, ii]
             tot_phase[ind_phase2 == ii] = ii_phase[ind_phase2 == ii]
-        # toc = time.perf_counter()
-        # print(toc-tic)
-        # print(tic2-tic)
-        # print(tic3-tic2)
-        # print(tic4-tic3)
-        # print(tic5-tic4)
-        # print(tic6-tic5)
-        # print(tic7-tic6)
-        # print(toc-tic7)
 
         return tot_phase
 
     def phase_tilt(self, xdir, ydir):
+        """
+        Calculate the phase shift due to tilting.
+
+        Parameters
+        ----------
+        xdir : str
+            The tilt in the x-direction in micrometers.
+        ydir : str
+            The tilt in the y-direction in micrometers.
+
+        Returns
+        -------
+        numpy.ndarray
+            The phase shift due to tilting.
+        """
         if xdir != '' and float(xdir) != 0:
             lim = np.ones(slm_size[0]) * float(xdir) * (slm_size[0] - 1) / 2
             phx = np.linspace(-lim, +lim, slm_size[1], axis=1)
@@ -917,6 +1058,14 @@ class TypeMultibeam(BaseType):
         return phx + phy
 
     def save_(self):
+        """
+        Save the current state of the TypeMultibeam object.
+
+        Returns
+        -------
+        dict : dict
+            A dictionary of the current state.
+        """
         dict = {'n': self.ent_n.get(),
                 'hpt': self.ent_hpt.get(),
                 'rad': self.ent_rad.get(),
@@ -930,6 +1079,14 @@ class TypeMultibeam(BaseType):
         return dict
 
     def load_(self, dict):
+        """
+        Load a saved state for the TypeMultibeam object.
+
+        Parameters
+        ----------
+        dict : dict
+            A dictionary of the saved state.
+        """
         self.strvar_n.set(dict['n'])
         self.strvar_hpt.set(dict['hpt'])
         self.strvar_rad.set(dict['rad'])
@@ -946,6 +1103,15 @@ class TypeVortex(BaseType):
     """shows vortex settings for phase"""
 
     def __init__(self, parent):
+        """
+        Initialize the TypeVortex class.
+
+        Parameters
+        ----------
+        parent : Tk object
+            The parent window for the frame.
+
+        """
         self.name = 'Vortex'
         self.frm_ = tk.Frame(parent)
         self.frm_.grid(row=6, column=0, sticky='nsew')
@@ -979,17 +1145,55 @@ class TypeVortex(BaseType):
         return phase
 
     def save_(self):
+        """
+        Save the current state of the TypeVortex object.
+
+        Returns
+        -------
+        dict : dict
+            A dictionary of the current state.
+        """
         dict = {'vort_ord': self.entries[0].get()}
         return dict
 
     def load_(self, dict):
+        """
+        Load a saved state for the TypeVortex object.
+
+        Parameters
+        ----------
+        dict : dict
+            A dictionary of the saved state.
+        """
         self.strvars[0].set(dict['vort_ord'])
 
 
 class TypeZernike(BaseType):
-    """shows zernike settings for phase"""
+    """
+    Class for managing Zernike polynomials settings for a phase calculation.
 
+    Attributes
+    ----------
+    name : str
+        Name of the class.
+    frm_ : Tkinter Frame
+        The parent window for the frame.
+    varnames : list of str
+        List of variable names.
+    strvars : list of Tkinter StringVar
+        List of StringVar objects for labels.
+    entries : list of Tkinter Entry
+        List of Entry objects for user input.
+    """
     def __init__(self, parent):
+        """
+        Initialize the TypeZernike class.
+
+        Parameters
+        ----------
+        parent : Tk object
+            The parent window for the frame.
+        """
         self.name = 'Zernike'
         self.frm_ = tk.Frame(parent)
         self.frm_.grid(row=7, column=0, sticky='nsew')
@@ -999,10 +1203,10 @@ class TypeZernike(BaseType):
         self.varnames = ['z1coef', 'z2coef', 'z3coef', 'z4coef', 'z5coef',
                          'z6coef', 'z7coef', 'z8coef', 'z9coef', 'z10coef',
                          'zsize', 'zdx', 'zdy']
-        lbl_texts = ['Z_00 koeff:', 'Z_11 koeff:', 'Z_1-1 koeff:',
-                     'Z_20 koeff:', 'Z_22 koeff:', 'Z_2-2 koeff:',
-                     'Z_31 koeff:', 'Z_3-1 koeff:', 'Z_33 koeff:',
-                     'Z_3-3 koeff:', 'Z size:', 'dx [mm]:', 'dy [mm]:']
+        lbl_texts = ['Z_00 :', 'Z_11 :', 'Z_-11 :',
+                     'Z_02 :', 'Z_22 :', 'Z_-22 :',
+                     'Z_13 :', 'Z_-13 :', 'Z_33 :',
+                     'Z_-33 :', 'Z size:', 'dx [mm]:', 'dy [mm]:']
         labels = [tk.Label(lbl_frm, text=lbl_text) for lbl_text in lbl_texts]
         vcmd = (parent.register(self.callback))
         self.strvars = [tk.StringVar() for lbl_text in lbl_texts]
@@ -1018,19 +1222,27 @@ class TypeZernike(BaseType):
                        sticky='w', padx=(0, 10))
 
     def phase(self):
-        # tic1 = time.perf_counter()
+        """
+        Computes the phase value using Zernike polynomials.
+
+        Returns
+        -------
+        numpy.ndarray
+            Array of phase values computed using Zernike polynomials.
+        """
         coeffs = np.zeros(len(self.entries), dtype=float)
         coeffs[10] = 1
+
         for i, entry in enumerate(self.entries):
             if entry.get() != '':
                 coeffs[i] = float(entry.get())
         zsize, zdx, zdy = coeffs[10:]
+
         x = np.linspace(-chip_width * 100 + zdx, chip_width * 100 + zdx, slm_size[1])
         y = np.linspace(-chip_height * 100 + zdy, chip_height * 100 + zdy, slm_size[0])
         [X, Y] = np.meshgrid(x, y)
         theta = np.arctan2(Y, X)
         rho = np.sqrt(X ** 2 + Y ** 2) / zsize
-        tic2 = time.perf_counter()
 
         p1 = coeffs[0] * 1 * np.cos(0 * theta)
         p2 = coeffs[1] * rho * np.cos(1 * theta)
@@ -1042,26 +1254,61 @@ class TypeZernike(BaseType):
         p8 = coeffs[7] * (3 * rho ** 3 - 2 * rho) * np.sin(1 * theta)
         p9 = coeffs[8] * rho ** 3 * np.cos(3 * theta)
         p10 = coeffs[9] * rho ** 3 * np.sin(3 * theta)
-        # tic4 = time.perf_counter()
-        phase = p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10
-        tic5 = time.perf_counter()
-        print(tic5 - tic2)
-        return phase * bit_depth
+
+        phase = (p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10) * bit_depth
+
+        return phase
 
     def save_(self):
+        """
+        Save the current state of the TypeVortex object.
+
+        Returns
+        -------
+        dict : dict
+            A dictionary of the current state.
+        """
         dict = {varname: self.entries[i].get()
                 for i, varname in enumerate(self.varnames)}
         return dict
 
     def load_(self, dict):
+        """
+        Load a saved state for the TypeZernike object.
+
+        Parameters
+        ----------
+        dict : dict
+            A dictionary of the saved state.
+        """
         for i, varname in enumerate(self.varnames):
             self.strvars[i].set(dict[varname])
 
 
 class TypeImage(TypeBackground):
-    """shows image settings for phase"""
+    """
+    A class managing image settings for a phase calculation.
+
+   Attributes
+    ----------
+    name : str
+        The name of the class instance.
+    frm_ : Tkinter.Frame
+        The Tkinter frame for the class instance.
+    lbl_file : Tkinter.Label
+        The Tkinter label to display the selected file.
+    """
 
     def __init__(self, parent):
+        """
+        Initialize the TypeImage class.
+
+        Parameters
+        ----------
+        parent : Tk object
+            The parent window for the frame.
+
+        """
         self.name = 'Image'
         self.frm_ = tk.Frame(parent)
         self.frm_.grid(row=8, column=0)  # , sticky='nsew')
@@ -1076,9 +1323,32 @@ class TypeImage(TypeBackground):
 
 
 class TypeHologram(BaseType):
-    """shows hologram settings for phase"""
+    """
+    A class managing hologram settings for a phase calculation.
 
+    Attributes
+    ----------
+    name : str
+        Name of the class.
+    parent : Tk object
+        The parent window for the frame.
+    frm_ : tkinter Frame object
+        A tkinter frame object representing the hologram.
+    gen_win : object or None
+        An object representing the generated hologram window.
+    img : numpy.ndarray or None
+        A numpy array representing the image of the hologram.
+    """
     def __init__(self, parent):
+        """
+        Initialize the Typehologram class.
+
+        Parameters
+        ----------
+        parent : Tk object
+            The parent window for the frame.
+
+        """
         self.name = 'Hologram'
         self.parent = parent
         self.frm_ = tk.Frame(self.parent)
@@ -1088,14 +1358,10 @@ class TypeHologram(BaseType):
         self.gen_win = None
         self.img = None
 
-        btn_open = tk.Button(lbl_frm, text='Open generated hologram',
-                             command=self.open_file)
-        self.lbl_file = tk.Label(lbl_frm, text='', wraplength=400,
-                                 justify='left', foreground='gray')
-        lbl_act_file = tk.Label(lbl_frm, text='Active Hologram file:',
-                                justify='left')
-        btn_generate = tk.Button(lbl_frm, text='Launch Hologram Generator',
-                                 command=self.open_generator)
+        btn_open = tk.Button(lbl_frm, text='Open generated hologram', command=self.open_file)
+        self.lbl_file = tk.Label(lbl_frm, text='', wraplength=400, justify='left', foreground='gray')
+        lbl_act_file = tk.Label(lbl_frm, text='Active Hologram file:', justify='left')
+        btn_generate = tk.Button(lbl_frm, text='Launch Hologram Generator', command=self.open_generator)
 
         btn_open.grid(row=0)
         lbl_act_file.grid(row=1)
@@ -1103,10 +1369,28 @@ class TypeHologram(BaseType):
         btn_generate.grid(row=3)
 
     def open_generator(self):
+        """
+        Open the hologram generator window if it doesn't already exist.
+
+        Returns
+        -------
+        None
+        """
         if self.gen_win is None:
             self.gen_win = gs.GSWindow(self)
 
     def phase(self):
+        """
+        Get the current phase data.
+
+        If an image has been loaded, use its data as the phase. Otherwise,
+        create a zeros array phase.
+
+        Returns
+        -------
+        phase : np.ndarray
+            The phase data.
+        """
         if self.img is not None:
             phase = self.img
         else:
@@ -1114,9 +1398,25 @@ class TypeHologram(BaseType):
         return phase
 
     def save_(self):
+        """
+        Save the current state of the TypeHologram object.
+
+        Returns
+        -------
+        dict : dict
+            A dictionary of the current state.
+        """
         dict = {'filepath': self.lbl_file['text']}
         return dict
 
     def load_(self, dict):
+        """
+        Load a saved state for the TypeHologram object.
+
+        Parameters
+        ----------
+        dict : dict
+            A dictionary of the saved state.
+        """
         self.lbl_file['text'] = dict['filepath']
         self._read_file(dict['filepath'])
