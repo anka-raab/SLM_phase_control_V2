@@ -16,9 +16,9 @@ These can be found and changed in the file "settings.py".
 
 "santec_driver" contains drivers to communicate with the Santec-SLMs.
 
-"model" contains the scripts used for data calculation
+"model" contains the scripts used for data calculation.
 
-"view" contains the scripts used for data and GUI displaying
+"view" contains the scripts used for data and GUI displaying.
 
 ## Documentation
 
