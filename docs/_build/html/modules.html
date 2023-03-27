@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SLM_phase_control &mdash; SLM Phase Control 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="controlPhaseSLM module" href="controlPhaseSLM.html" />
+    <link rel="prev" title="Welcome to SLM Phase Control’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            SLM Phase Control
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SLM_phase_control</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controlPhaseSLM.html">controlPhaseSLM module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model.html">model package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html">views package</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SLM Phase Control</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">SLM_phase_control</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/modules.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="slm-phase-control">
+<h1>SLM_phase_control<a class="headerlink" href="#slm-phase-control" title="Permalink to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="controlPhaseSLM.html">controlPhaseSLM module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model.html">model package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="model.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model.html#model-feedbacker-module">model.feedbacker module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model.html#module-model.gerchberg_saxton">model.gerchberg_saxton module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="model.html#model.gerchberg_saxton.GSWindow"><code class="docutils literal notranslate"><span class="pre">GSWindow</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.gerchberg_saxton.GSWindow.calculate_phase"><code class="docutils literal notranslate"><span class="pre">GSWindow.calculate_phase()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.gerchberg_saxton.GSWindow.close_GS"><code class="docutils literal notranslate"><span class="pre">GSWindow.close_GS()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.gerchberg_saxton.GSWindow.generate_image"><code class="docutils literal notranslate"><span class="pre">GSWindow.generate_image()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.gerchberg_saxton.GSWindow.open_file"><code class="docutils literal notranslate"><span class="pre">GSWindow.open_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.gerchberg_saxton.GSWindow.prepare_figure"><code class="docutils literal notranslate"><span class="pre">GSWindow.prepare_figure()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.gerchberg_saxton.GSWindow.render_image_generator"><code class="docutils literal notranslate"><span class="pre">GSWindow.render_image_generator()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.gerchberg_saxton.GSWindow.take_pattern"><code class="docutils literal notranslate"><span class="pre">GSWindow.take_pattern()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="model.html#model.gerchberg_saxton.flat_top"><code class="docutils literal notranslate"><span class="pre">flat_top()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="model.html#model.gerchberg_saxton.gaussian"><code class="docutils literal notranslate"><span class="pre">gaussian()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="model.html#model.gerchberg_saxton.gs_algorithm"><code class="docutils literal notranslate"><span class="pre">gs_algorithm()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="model.html#module-model.phase_settings">model.phase_settings module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="model.html#model.phase_settings.BaseType"><code class="docutils literal notranslate"><span class="pre">BaseType</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.BaseType.callback"><code class="docutils literal notranslate"><span class="pre">BaseType.callback()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.BaseType.close_"><code class="docutils literal notranslate"><span class="pre">BaseType.close_()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.BaseType.name_"><code class="docutils literal notranslate"><span class="pre">BaseType.name_()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.BaseType.open_file"><code class="docutils literal notranslate"><span class="pre">BaseType.open_file()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="model.html#model.phase_settings.TypeBackground"><code class="docutils literal notranslate"><span class="pre">TypeBackground</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeBackground.name"><code class="docutils literal notranslate"><span class="pre">TypeBackground.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeBackground.frm_"><code class="docutils literal notranslate"><span class="pre">TypeBackground.frm_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeBackground.lbl_file"><code class="docutils literal notranslate"><span class="pre">TypeBackground.lbl_file</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeBackground.load_"><code class="docutils literal notranslate"><span class="pre">TypeBackground.load_()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeBackground.phase"><code class="docutils literal notranslate"><span class="pre">TypeBackground.phase()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeBackground.save_"><code class="docutils literal notranslate"><span class="pre">TypeBackground.save_()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="model.html#model.phase_settings.TypeBinary"><code class="docutils literal notranslate"><span class="pre">TypeBinary</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeBinary.name"><code class="docutils literal notranslate"><span class="pre">TypeBinary.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeBinary.frm_"><code class="docutils literal notranslate"><span class="pre">TypeBinary.frm_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeBinary.cbx_dir"><code class="docutils literal notranslate"><span class="pre">TypeBinary.cbx_dir</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeBinary.ent_area"><code class="docutils literal notranslate"><span class="pre">TypeBinary.ent_area</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeBinary.ent_phi"><code class="docutils literal notranslate"><span class="pre">TypeBinary.ent_phi</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeBinary.load_"><code class="docutils literal notranslate"><span class="pre">TypeBinary.load_()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeBinary.phase"><code class="docutils literal notranslate"><span class="pre">TypeBinary.phase()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeBinary.save_"><code class="docutils literal notranslate"><span class="pre">TypeBinary.save_()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="model.html#model.phase_settings.TypeFlat"><code class="docutils literal notranslate"><span class="pre">TypeFlat</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeFlat.name"><code class="docutils literal notranslate"><span class="pre">TypeFlat.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeFlat.frm_"><code class="docutils literal notranslate"><span class="pre">TypeFlat.frm_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeFlat.ent_flat"><code class="docutils literal notranslate"><span class="pre">TypeFlat.ent_flat</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeFlat.load_"><code class="docutils literal notranslate"><span class="pre">TypeFlat.load_()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeFlat.phase"><code class="docutils literal notranslate"><span class="pre">TypeFlat.phase()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeFlat.save_"><code class="docutils literal notranslate"><span class="pre">TypeFlat.save_()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="model.html#model.phase_settings.TypeHologram"><code class="docutils literal notranslate"><span class="pre">TypeHologram</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeHologram.name"><code class="docutils literal notranslate"><span class="pre">TypeHologram.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeHologram.parent"><code class="docutils literal notranslate"><span class="pre">TypeHologram.parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeHologram.frm_"><code class="docutils literal notranslate"><span class="pre">TypeHologram.frm_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeHologram.gen_win"><code class="docutils literal notranslate"><span class="pre">TypeHologram.gen_win</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeHologram.img"><code class="docutils literal notranslate"><span class="pre">TypeHologram.img</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeHologram.load_"><code class="docutils literal notranslate"><span class="pre">TypeHologram.load_()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeHologram.open_generator"><code class="docutils literal notranslate"><span class="pre">TypeHologram.open_generator()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeHologram.phase"><code class="docutils literal notranslate"><span class="pre">TypeHologram.phase()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeHologram.save_"><code class="docutils literal notranslate"><span class="pre">TypeHologram.save_()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="model.html#model.phase_settings.TypeImage"><code class="docutils literal notranslate"><span class="pre">TypeImage</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="model.html#model.phase_settings.TypeLens"><code class="docutils literal notranslate"><span class="pre">TypeLens</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeLens.name"><code class="docutils literal notranslate"><span class="pre">TypeLens.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeLens.frm_"><code class="docutils literal notranslate"><span class="pre">TypeLens.frm_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeLens.strvar_ben"><code class="docutils literal notranslate"><span class="pre">TypeLens.strvar_ben</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeLens.ent_ben"><code class="docutils literal notranslate"><span class="pre">TypeLens.ent_ben</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeLens.load_"><code class="docutils literal notranslate"><span class="pre">TypeLens.load_()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeLens.phase"><code class="docutils literal notranslate"><span class="pre">TypeLens.phase()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeLens.save_"><code class="docutils literal notranslate"><span class="pre">TypeLens.save_()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.name"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.frm_"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.frm_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.strvar_n"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.strvar_n</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.ent_n"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.ent_n</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.strvar_hpt"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.strvar_hpt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.ent_hpt"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.ent_hpt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.strvar_vpt"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.strvar_vpt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.ent_vpt"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.ent_vpt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.strvar_rad"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.strvar_rad</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.ent_rad"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.ent_rad</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.strvar_amp"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.strvar_amp</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.ent_amp"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.ent_amp</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.strvar_hit"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.strvar_hit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.ent_hit"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.ent_hit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.strvar_vit"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.strvar_vit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.ent_vit"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.ent_vit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.strvar_his"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.strvar_his</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.ent_his"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.ent_his</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.strvar_vis"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.strvar_vis</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.ent_vis"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.ent_vis</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.strvar_pxsiz"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.strvar_pxsiz</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.ent_pxsiz"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.ent_pxsiz</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.load_"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.load_()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.phase"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.phase()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.phase_tilt"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.phase_tilt()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeMultibeam.save_"><code class="docutils literal notranslate"><span class="pre">TypeMultibeam.save_()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="model.html#model.phase_settings.TypeTilt"><code class="docutils literal notranslate"><span class="pre">TypeTilt</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeTilt.name"><code class="docutils literal notranslate"><span class="pre">TypeTilt.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeTilt.frm_"><code class="docutils literal notranslate"><span class="pre">TypeTilt.frm_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeTilt.strvar_xdir"><code class="docutils literal notranslate"><span class="pre">TypeTilt.strvar_xdir</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeTilt.strvar_ydir"><code class="docutils literal notranslate"><span class="pre">TypeTilt.strvar_ydir</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeTilt.strvar_tstep"><code class="docutils literal notranslate"><span class="pre">TypeTilt.strvar_tstep</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeTilt.ent_xdir"><code class="docutils literal notranslate"><span class="pre">TypeTilt.ent_xdir</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeTilt.ent_ydir"><code class="docutils literal notranslate"><span class="pre">TypeTilt.ent_ydir</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeTilt.ent_tstep"><code class="docutils literal notranslate"><span class="pre">TypeTilt.ent_tstep</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeTilt.down_"><code class="docutils literal notranslate"><span class="pre">TypeTilt.down_()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeTilt.left_"><code class="docutils literal notranslate"><span class="pre">TypeTilt.left_()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeTilt.load_"><code class="docutils literal notranslate"><span class="pre">TypeTilt.load_()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeTilt.phase"><code class="docutils literal notranslate"><span class="pre">TypeTilt.phase()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeTilt.right_"><code class="docutils literal notranslate"><span class="pre">TypeTilt.right_()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeTilt.save_"><code class="docutils literal notranslate"><span class="pre">TypeTilt.save_()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeTilt.up_"><code class="docutils literal notranslate"><span class="pre">TypeTilt.up_()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="model.html#model.phase_settings.TypeVortex"><code class="docutils literal notranslate"><span class="pre">TypeVortex</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeVortex.load_"><code class="docutils literal notranslate"><span class="pre">TypeVortex.load_()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeVortex.phase"><code class="docutils literal notranslate"><span class="pre">TypeVortex.phase()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeVortex.save_"><code class="docutils literal notranslate"><span class="pre">TypeVortex.save_()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="model.html#model.phase_settings.TypeZernike"><code class="docutils literal notranslate"><span class="pre">TypeZernike</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeZernike.name"><code class="docutils literal notranslate"><span class="pre">TypeZernike.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeZernike.frm_"><code class="docutils literal notranslate"><span class="pre">TypeZernike.frm_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeZernike.varnames"><code class="docutils literal notranslate"><span class="pre">TypeZernike.varnames</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeZernike.strvars"><code class="docutils literal notranslate"><span class="pre">TypeZernike.strvars</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeZernike.entries"><code class="docutils literal notranslate"><span class="pre">TypeZernike.entries</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeZernike.load_"><code class="docutils literal notranslate"><span class="pre">TypeZernike.load_()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeZernike.phase"><code class="docutils literal notranslate"><span class="pre">TypeZernike.phase()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="model.html#model.phase_settings.TypeZernike.save_"><code class="docutils literal notranslate"><span class="pre">TypeZernike.save_()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="model.html#model.phase_settings.new_type"><code class="docutils literal notranslate"><span class="pre">new_type()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="model.html#module-model.settings">model.settings module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model.html#module-model">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="views.html">views package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="views.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#module-views.draw_polygon">views.draw_polygon module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="views.html#views.draw_polygon.draw_polygon"><code class="docutils literal notranslate"><span class="pre">draw_polygon()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#module-views.preview_window">views.preview_window module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="views.html#views.preview_window.PrevScreen"><code class="docutils literal notranslate"><span class="pre">PrevScreen</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="views.html#views.preview_window.PrevScreen.parent"><code class="docutils literal notranslate"><span class="pre">PrevScreen.parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="views.html#views.preview_window.PrevScreen.win"><code class="docutils literal notranslate"><span class="pre">PrevScreen.win</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="views.html#views.preview_window.PrevScreen.fig"><code class="docutils literal notranslate"><span class="pre">PrevScreen.fig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="views.html#views.preview_window.PrevScreen.ax1"><code class="docutils literal notranslate"><span class="pre">PrevScreen.ax1</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="views.html#views.preview_window.PrevScreen.ax2"><code class="docutils literal notranslate"><span class="pre">PrevScreen.ax2</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="views.html#views.preview_window.PrevScreen.ax3"><code class="docutils literal notranslate"><span class="pre">PrevScreen.ax3</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="views.html#views.preview_window.PrevScreen.ax4"><code class="docutils literal notranslate"><span class="pre">PrevScreen.ax4</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="views.html#views.preview_window.PrevScreen.img1"><code class="docutils literal notranslate"><span class="pre">PrevScreen.img1</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="views.html#views.preview_window.PrevScreen.tk_widget_fig"><code class="docutils literal notranslate"><span class="pre">PrevScreen.tk_widget_fig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="views.html#views.preview_window.PrevScreen.close_prev"><code class="docutils literal notranslate"><span class="pre">PrevScreen.close_prev()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="views.html#views.preview_window.PrevScreen.update_plots"><code class="docutils literal notranslate"><span class="pre">PrevScreen.update_plots()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#module-views.questionbox">views.questionbox module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="views.html#views.questionbox.PopupQuestion"><code class="docutils literal notranslate"><span class="pre">PopupQuestion</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="views.html#views.questionbox.PopupQuestion.cancelled"><code class="docutils literal notranslate"><span class="pre">PopupQuestion.cancelled()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="views.html#views.questionbox.PopupQuestion.false_pressed"><code class="docutils literal notranslate"><span class="pre">PopupQuestion.false_pressed()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="views.html#views.questionbox.PopupQuestion.true_pressed"><code class="docutils literal notranslate"><span class="pre">PopupQuestion.true_pressed()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#module-views">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to SLM Phase Control’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="controlPhaseSLM.html" class="btn btn-neutral float-right" title="controlPhaseSLM module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Lund Atomic Physics.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

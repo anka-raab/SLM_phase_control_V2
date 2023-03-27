@@ -4,7 +4,7 @@ from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 import matplotlib.image as mpimg
 from model.settings import slm_size, bit_depth, chip_width, chip_height, wavelength
-from model import gerchberg_saxton as gs
+import model.gerchberg_saxton as gs
 
 print('types in')
 

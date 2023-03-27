@@ -17,7 +17,6 @@ from model import phase_settings, feedbacker
 from model.settings import slm_size, bit_depth
 from views import preview_window, questionbox
 
-
 matplotlib.use("TkAgg")
 
 
