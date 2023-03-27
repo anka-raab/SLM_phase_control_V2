@@ -1,28 +1,83 @@
-from settings import slm_size, bit_depth
+import json
+import os
+
+import numpy as np
+import matplotlib
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
 import tkinter as tk
 from tkinter import ttk
 import tkinter.font as tkFont
 import tkinter.messagebox as tkMbox
-import numpy as np
 from tkinter.filedialog import askopenfilename, asksaveasfilename
-import json
-import os
-import questionbox
-import phase_settings
-import preview_window
+
 import santec_driver._slm_py as slm
-import feedbacker
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import matplotlib
+from model import phase_settings, feedbacker
+from model.settings import slm_size, bit_depth
+from views import preview_window, questionbox
+
 
 matplotlib.use("TkAgg")
 
 
 class MainScreen(object):
-    """"""
+    """
+    Class for controlling the SLM Phase Control main screen.
+
+    Attributes:
+    -----------
+    main_win : tk.Tk
+        The main tkinter window.
+    pub_win : None or tkinter.Toplevel
+        The window for publishing.
+    prev_win : None or tkinter.Toplevel
+        The window for previewing.
+    feedback_win : None or tkinter.Toplevel
+        The window for feedback.
+    phase_map : numpy.ndarray
+        A numpy array containing the calculated phase.
+
+    Methods:
+    --------
+    __init__(self, parent):
+        Initializes the MainScreen object with its attributes.
+    exit_prog(self):
+        Closes the program.
+    setup_box(self, parent):
+        Sets up the checkboxes.
+    open_feedback(self):
+        Opens the feedback window.
+    open_prev(self):
+        Opens the preview window.
+    open_pub(self):
+        Opens the publish window.
+    save(self):
+        Saves the current settings.
+    load(self, filename):
+        Loads the settings from a file.
+    scan_options(self):
+        Sets up the scanning options.
+    left_arrow(self):
+        Handles the left arrow key event.
+    right_arrow(self):
+        Handles the right arrow key event.
+    up_arrow(self):
+        Handles the up arrow key event.
+    down_arrow(self):
+        Handles the down arrow key event.
+    escape_key(self):
+        Handles the escape key event.
+    """
 
     def __init__(self, parent):
+        """Initializes the MainScreen object with its attributes.
+
+        Parameters:
+        -----------
+        parent : tk.Tk
+            The tkinter parent window.
+        """
         self.main_win = parent
         self.main_win.protocol("WM_DELETE_WINDOW", self.exit_prog)
         self.main_win.title('SLM Phase Control')
@@ -31,7 +86,7 @@ class MainScreen(object):
         self.main_win.rowconfigure(2, minsize=100, weight=1)
         self.pub_win = None
         self.prev_win = None
-        self.fbck_win = None
+        self.feedback_win = None
         self.phase_map = np.zeros(slm_size)
 
         # creating frames
@@ -46,11 +101,10 @@ class MainScreen(object):
             self.main_win,
             text='Control Phase',
             font=tkFont.Font(family='Lucida Grande', size=20))
-
         lbl_screen = tk.Label(frm_top, text='SLM display number:')
 
         # Creating buttons
-        but_fbck = tk.Button(frm_bot, text='Feedbacker', command=self.open_fbck)
+        but_fbck = tk.Button(frm_bot, text='Feedbacker', command=self.open_feedback)
         but_prev = tk.Button(frm_bot, text='Preview', command=self.open_prev)
         but_pub = tk.Button(frm_bot, text='Publish', command=self.open_pub)
         but_exit = tk.Button(frm_bot, text='EXIT', command=self.exit_prog)
@@ -58,7 +112,6 @@ class MainScreen(object):
         but_load = tk.Button(frm_topb, text='Load Settings', command=self.load)
 
         # Creating entry
-
         self.ent_scr = tk.Spinbox(frm_top, width=5, from_=1, to=8)
 
         # Setting up general structure
@@ -94,56 +147,117 @@ class MainScreen(object):
         but_exit.grid(row=0, column=3, padx=10, pady=5, ipadx=5)
 
         # binding keys
-        def lefthandler(event):
+        def left_handler(event):
+            """
+            Handle the 'a' key press event.
+
+            Parameters:
+                event (Event): The event object associated with the key press.
+            """
             return self.left_arrow()
 
-        self.main_win.bind('a', lefthandler)
+        self.main_win.bind('a', left_handler)
 
-        def righthandler(event):
+        def right_handler(event):
+            """
+            Handle the 'd' key press event.
+
+            Parameters:
+                event (Event): The event object associated with the key press.
+            """
             return self.right_arrow()
 
-        self.main_win.bind('d', righthandler)
+        self.main_win.bind('d', right_handler)
 
-        def uphandler(event):
+        def up_handler(event):
+            """
+            Handle the 'w' key press event.
+
+            Parameters:
+                event (Event): The event object associated with the key press.
+            """
             return self.up_arrow()
 
-        self.main_win.bind('w', uphandler)
+        self.main_win.bind('w', up_handler)
 
-        def downhandler(event):
+        def down_handler(event):
+            """
+            Handle the 's' key press event.
+
+            Parameters:
+                event (Event): The event object associated with the key press.
+            """
             return self.down_arrow()
 
-        self.main_win.bind('s', downhandler)
+        self.main_win.bind('s', down_handler)
 
-        def escapehandler(event):
+        def escape_handler(event):
+            """
+            Handle the 'Escape' key press event.
+
+            Parameters:
+                event (Event): The event object associated with the key press.
+            """
             return self.escape_key()
 
-        self.main_win.bind('<Escape>', escapehandler)
+        self.main_win.bind('<Escape>', escape_handler)
 
         # loading last settings
         self.load('./last_settings.txt')
 
-    def open_fbck(self):
-        if self.fbck_win is None:
-            q_str1 = 'The Feedbacker needs to look at fringes between the two beams.'
+    def open_feedback(self):
+        """
+        Open the feedback window for analyzing fringes between two beams.
+
+        If the feedback window is not already open, a question box will pop up asking the user to choose a feedback
+        method between using a camera with spatial fringes or a spectrometer with spectral fringes.
+        """
+        if self.feedback_win is None:
+            q_str1 = 'The feedbacker needs to look at fringes between the two beams.'
             q_str2 = 'Do you want to use a camera with spatial fringes or a spectrometer with spectral fringes?'
             q_str = q_str1 + '\n' + q_str2
             questionbox.PopupQuestion(self.open_feedback_window, 'Choose feedback method',
                                       q_str, 'Open Camera', 'Open Spectrometer')
 
     def open_feedback_window(self, answer):
-        self.fbck_win = feedbacker.Feedbacker(self, slm, answer)
+        """
+        Open the feedback window using the specified feedback method.
+
+        Parameters:
+            answer (str): The feedback method to use - 'Open Camera' for spatial fringes
+            or 'Open Spectrometer' for spectral fringes.
+        """
+        self.feedback_win = feedbacker.Feedbacker(self, slm, answer)
 
     def open_prev(self):
+        """
+        Open the preview window, or update it if it is already open.
+
+        If the preview window is not open, it will be created. Otherwise, the update_plots() method of the existing
+        preview window will be called to update the plots.
+        """
         if self.prev_win is not None:
             self.prev_win.update_plots()
         else:
             self.prev_win = preview_window.PrevScreen(self)
 
     def prev_win_closed(self):
+        """
+        Handle the event of the preview window being closed.
+
+        When the preview window is closed, this method will be called to reset the prev_win attribute to None.
+        """
         print('prev closed')
         self.prev_win = None
 
     def open_pub(self):
+        """
+        Open the public display window and display the phase map.
+
+        This method will first disable the entry screen, then generate a phase map using the current phase values
+        and bit depth, and display it on the SLM using the SLM_Disp_Open() and SLM_Disp_Data() methods. Finally,
+        the update_phase_plot() method is called to update the phase plot.
+        """
         self.ent_scr.config(state='disabled')
         self.phase_map = np.angle(np.exp(1j * self.get_phase() / bit_depth))
 
@@ -154,6 +268,12 @@ class MainScreen(object):
         self.update_phase_plot(self.phase_map)
 
     def do_scan(self):
+        """
+        Perform a scan of the specified file list.
+
+        This method loads each file in the file list, opens the public display window, and waits for the specified delay
+        between files. The scan can be stopped by setting the var_stop_scan attribute to 1.
+        """
         if self.strvar_delay.get() == '':
             self.strvar_delay.set('1')
         delay = float(self.strvar_delay.get())
@@ -175,15 +295,34 @@ class MainScreen(object):
             root.wait_variable(var)
 
     def countdown(self):
+        """
+        Countdown the remaining time until the next file is loaded.
+
+        This method updates the lbl_time label to display the remaining time until the next file is loaded. It is called
+        by the do_scan() method.
+        """
         self.lbl_time['text'] = int(self.lbl_time['text']) - 1
         if int(self.lbl_time['text']):
             self.lbl_time.after(1000, self.countdown)
 
     def pub_win_closed(self):
+        """
+        Handle the event of the public display window being closed.
+
+        This method re-enables the entry screen and closes the public display on the SLM.
+        """
         self.ent_scr.config(state='normal')
         slm.SLM_Disp_Close(int(self.ent_scr.get()))
 
     def setup_box(self, frm_):
+        """
+        Set up a label frame containing check-buttons for enabling different types of phase.
+
+        Parameters:
+        -----------
+        frm_: tkinter.Frame
+            The parent frame in which the label frame and check-buttons are to be placed.
+        """
         frm_box = tk.LabelFrame(frm_, text='Phases enabled')
         frm_box.grid(column=0)
         self.types = phase_settings.types  # reads in  different phase types
@@ -203,16 +342,38 @@ class MainScreen(object):
             self.box_.grid(row=ind, sticky='w')
 
     def get_phase(self):
-        '''gets the phase from the active phase types'''
+        """
+        Gets the phase from the active phase types.
+
+        Returns:
+        --------
+        phase: numpy.ndarray
+            A 2D numpy array containing the phase values of the active phase types.
+        """
         phase = np.zeros(slm_size)
         for ind, phase_types in enumerate(self.phase_refs):
             if self.vars[ind].get() == 1:
                 print(phase_types)
                 phase += phase_types.phase()
+
         return phase
 
     def save(self, filepath=None):
-        """Save the current settings as a new file."""
+        """
+        Save the current settings to a file.
+
+        Parameters
+        ----------
+        filepath : str, optional
+            The path to the file to save. If not specified, a dialog box will be
+            displayed to prompt the user to choose a file.
+
+        Notes
+        -----
+        The settings will be saved as a JSON-encoded dictionary to the specified
+        file. The dictionary will contain the enabled status and parameters for
+        each phase type
+        """
         if filepath is None:
             filepath = asksaveasfilename(
                 defaultextension='txt',
@@ -229,6 +390,21 @@ class MainScreen(object):
             f.write(json.dumps(dict))
 
     def load(self, filepath=None):
+        """
+        Load settings from a file.
+
+        Parameters
+        ----------
+        filepath : str, optional
+            The path to the file to load. If not specified, a dialog box will be
+            displayed to prompt the user to choose a file.
+
+        Notes
+        -----
+        The settings will be loaded from a JSON-encoded dictionary in the specified
+        file. The dictionary should contain the enabled status and parameters for
+        each phase type.
+        """
         if filepath is None:
             filepath = askopenfilename(
                 filetypes=[('Text Files', '*.txt'), ('All Files', '*.*')]
@@ -239,7 +415,7 @@ class MainScreen(object):
             with open(filepath, 'r') as f:
                 dics = json.loads(f.read())
             try:
-                for num, phase in enumerate(self.phase_refs):  # loading
+                for num, phase in enumerate(self.phase_refs):
                     phase.load_(dics[phase.name_()]['Params'])
                     self.vars[num].set(dics[phase.name_()]['Enabled'])
                 self.ent_scr.delete(0, tk.END)
@@ -250,6 +426,9 @@ class MainScreen(object):
             print(f'No settings file found at {filepath}')
 
     def scan_options(self):
+        """
+        Creates and sets up widgets for the scan options.
+        """
         self.so_frm = tk.LabelFrame(self.frm_side, text='Scan options')
         self.so_frm.grid(row=0, sticky='nsew')
 
@@ -314,8 +493,25 @@ class MainScreen(object):
         self.lbl_time.grid(row=4, column=2, sticky='w')
 
     def callback(self, action, P, text):
-        # action=1 -> insert
-        if (action == '1'):
+        """
+        Check if the given input text is valid for insertion in an Entry widget.
+
+        Parameters
+        ----------
+        action : str
+            The type of action being performed on the Entry widget.
+            Must be either '1' for insertion or '0' for deletion.
+        P : str
+            The proposed insertion position.
+        text : str
+            The text to be inserted.
+
+        Returns
+        -------
+        bool
+            True if the input text is valid for insertion, False otherwise.
+        """
+        if action == '1':
             if text in '0123456789.-+:':
                 return True
             else:
@@ -324,6 +520,14 @@ class MainScreen(object):
             return True
 
     def scan_params(self):
+        """
+        Get a list of scan parameters based on the currently selected phases.
+
+        Returns
+        -------
+        List[str]
+            A list of scan parameters, formatted as 'phase_name:param_name'.
+        """
         scparams = []
         for ind, phase in enumerate(self.phase_refs):
             if self.vars[ind].get() == 1:
@@ -334,6 +538,9 @@ class MainScreen(object):
         return
 
     def create_loadingfile(self):
+        """
+        Create a loading file for phase scan files.
+        """
         if self.strvar_val.get() != '':
             strval = self.strvar_val.get()
             listval = strval.split(':', 3)
@@ -381,6 +588,9 @@ class MainScreen(object):
         return
 
     def open_loadingfile(self):
+        """
+        Open a loading file for phase scan files.
+        """
         filepath = askopenfilename(
             filetypes=[('Text Files', '*.txt'), ('All Files', '*.*')]
         )
@@ -390,6 +600,9 @@ class MainScreen(object):
         return
 
     def load_filelist(self):
+        """
+        Load a filelist for phase scan files.
+        """
         filelistpath = self.lbl_file['text']
         with open(filelistpath, 'r') as f:
             text = f.read()
@@ -397,28 +610,43 @@ class MainScreen(object):
             return stringlist[0:-1]
 
     def stop_scan(self):
+        """
+        Stop the scan by setting a variable to 1.
+        """
         self.var_stop_scan.set(1)
         return
 
     def left_arrow(self):
+        """
+        Move the selected phase to the left.
+        """
         if self.vars[2].get() == 1:
             self.phase_refs[2].left_()
             self.open_pub()
             self.main_win.after(500, self.main_win.focus_force)
 
     def right_arrow(self):
+        """
+        Move the selected phase to the right.
+        """
         if self.vars[2].get() == 1:
             self.phase_refs[2].right_()
             self.open_pub()
             self.main_win.after(500, self.main_win.focus_force)
 
     def up_arrow(self):
+        """
+        Move the selected phase up.
+        """
         if self.vars[2].get() == 1:
             self.phase_refs[2].up_()
             self.open_pub()
             self.main_win.after(500, self.main_win.focus_force)
 
     def down_arrow(self):
+        """
+        Move the selected phase down.
+        """
         print('s pressed')
         if self.vars[2].get() == 1:
             self.phase_refs[2].down_()
@@ -426,6 +654,12 @@ class MainScreen(object):
             self.main_win.after(500, self.main_win.focus_force)
 
     def escape_key(self):
+        """
+        Handle the escape key press event.
+
+        If the publication window is open, it prompts the user to close the window.
+        Otherwise, it clears the ax1 and draws the img1.
+        """
         print('esc pressed')
         if self.pub_win is not None:
             q_str = 'Do you want to close the SLM Publication Window?\nThe SLM screen will instead show the desktop ' \
@@ -437,16 +671,31 @@ class MainScreen(object):
                 self.img1.draw()
 
     def update_phase_plot(self, phase):
+        """
+        Update the phase plot of the SLM.
+
+        Clear the ax1, update the phase, and draw the img1.
+
+        Parameters
+        ----------
+        phase : np.ndarray
+            The new phase values to update.
+        """
         self.ax1.clear()
         self.ax1.imshow(np.angle(np.exp(1j * self.get_phase() / bit_depth)), cmap='twilight_shifted',
                         interpolation='None')
         self.img1.draw()
 
     def exit_prog(self):
+        """
+        Exit the program.
+
+        Save the last settings, close the publication window, and destroy the main window.
+        """
         self.save('./last_settings.txt')
         self.pub_win_closed()
-        if self.fbck_win is not None:
-            self.fbck_win.on_close()
+        if self.feedback_win is not None:
+            self.feedback_win.on_close()
         self.main_win.destroy()
 
 

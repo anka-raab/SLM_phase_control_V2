@@ -1,4 +1,4 @@
-from settings import slm_size, bit_depth
+from model.settings import slm_size, bit_depth
 import numpy as np
 import matplotlib
 from matplotlib.figure import Figure

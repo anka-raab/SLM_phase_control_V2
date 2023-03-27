@@ -3,8 +3,8 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 import matplotlib.image as mpimg
-from settings import slm_size, bit_depth, chip_width, chip_height, wavelength
-import gerchberg_saxton as gs
+from model.settings import slm_size, bit_depth, chip_width, chip_height, wavelength
+from model import gerchberg_saxton as gs
 
 print('types in')
 

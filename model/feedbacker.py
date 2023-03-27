@@ -1,4 +1,4 @@
-from settings import slm_size, bit_depth
+from model.settings import slm_size, bit_depth
 import tkinter as tk
 import numpy as np
 import matplotlib
@@ -9,10 +9,10 @@ import avaspec_driver._avs_py as avs
 # import gxipy as gx
 from PIL import Image, ImageTk
 import time
-import draw_polygon
+from views import draw_polygon
 from simple_pid import PID
 import threading
-from pynput import keyboard
+# ajouter le keylog
 
 matplotlib.use("TkAgg")
 
@@ -664,4 +664,4 @@ class Feedbacker(object):
             self.spec_deactivate()
             avs.AVS_Done()
         self.win.destroy()
-        self.parent.fbck_win = None
+        self.parent.feedback_win = None
