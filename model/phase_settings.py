@@ -5,11 +5,12 @@ from tkinter.filedialog import askopenfilename
 import matplotlib.image as mpimg
 from model.settings import slm_size, bit_depth, chip_width, chip_height, wavelength
 import model.gerchberg_saxton as gs
+import model.aberration_correction as aberration
 
 print('types in')
 
 types = ['Background.', 'Flat', 'Tilt', 'Binary', 'Lens',
-         'Multi', 'Vortex', 'Zernike', 'Image', 'Hologram']
+         'Multi', 'Vortex', 'Zernike', 'Image', 'Hologram', 'Aberration']
 
 
 def new_type(frm_mid, typ):
@@ -49,6 +50,8 @@ def new_type(frm_mid, typ):
         return TypeImage(frm_mid)
     elif typ == 'Hologram':
         return TypeHologram(frm_mid)
+    elif typ == 'Aberration':
+        return TypeAberration(frm_mid)
 
 
 class BaseType(object):
@@ -1412,6 +1415,102 @@ class TypeHologram(BaseType):
     def load_(self, dict):
         """
         Load a saved state for the TypeHologram object.
+
+        Parameters
+        ----------
+        dict : dict
+            A dictionary of the saved state.
+        """
+        self.lbl_file['text'] = dict['filepath']
+        self._read_file(dict['filepath'])
+
+
+class TypeAberration(BaseType):
+    """
+    A class managing the automatic correction of the wavefront aberration settings for a phase calculation.
+
+    Attributes
+    ----------
+    name : str
+        Name of the class.
+    parent : Tk object
+        The parent window for the frame.
+    frm_ : tkinter Frame object
+        A tkinter frame object representing the Aberration Correction.
+    gen_win : object or None
+        An object representing the generated Aberration Correction window.
+    img : numpy.ndarray or None
+        A numpy array representing the image of the aberration correction.
+    """
+    def __init__(self, parent):
+        """
+        Initialize the TypeAberration class.
+
+        Parameters
+        ----------
+        parent : Tk object
+            The parent window for the frame.
+
+        """
+        self.name = 'A'
+        self.parent = parent
+        self.frm_ = tk.Frame(self.parent)
+        self.frm_.grid(row=0, column=0, sticky='nsew')
+        lbl_frm = tk.LabelFrame(self.frm_, text='Aberration')
+        lbl_frm.grid(row=0, column=0, sticky='ew')
+        self.gen_win = None
+        self.img = None
+
+        self.lbl_file = tk.Label(lbl_frm, text='', wraplength=400, justify='left', foreground='gray')
+        btn_generate = tk.Button(lbl_frm, text='Launch aberration correction generator', command=self.open_generator)
+
+        self.lbl_file.grid(row=0)
+        btn_generate.grid(row=1)
+
+    def open_generator(self):
+        """
+        Open the aberration correction generator window if it doesn't already exist.
+
+        Returns
+        -------
+        None
+        """
+        if self.gen_win is None:
+            self.gen_win = aberration.AberrationWindow(self)
+
+    def phase(self):
+        """
+        Get the current phase data.
+
+        If an image has been loaded, use its data as the phase. Otherwise,
+        create a zeros array phase.
+
+        Returns
+        -------
+        phase : np.ndarray
+            The phase data.
+        """
+        if self.img is not None:
+            phase = self.img
+        else:
+            phase = np.zeros(slm_size)
+        return phase
+
+    def save_(self):
+        """
+        Save the current state of the TypeAberration object.
+
+        Returns
+        -------
+        dict : dict
+            A dictionary of the current state.
+        """
+        dict = {'filepath': self.lbl_file['text']}
+        return dict
+
+    def load_(self, dict):
+        """
+        Load a saved state for the TypeAberration object.
 
         Parameters
         ----------

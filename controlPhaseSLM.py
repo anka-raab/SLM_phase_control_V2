@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import scipy
 
 import tkinter as tk
 from tkinter import ttk
@@ -351,12 +352,19 @@ class MainScreen(object):
         """
         phase = np.zeros(slm_size)
         for ind, phase_types in enumerate(self.phase_refs):
-            if self.vars[ind].get() == 1:
-                print(phase_types)
+            # Check if phase array needs to be resized
+            if self.vars[ind].get() == 1 and phase_types.phase().shape != (1200, 1920):
+                new_shape = (1200, 1920)
+                new_phase = np.zeros(new_shape)
+                start_x = (new_shape[0] - phase_types.phase().shape[0]) // 2
+                start_y = (new_shape[1] - phase_types.phase().shape[1]) // 2
+                new_phase[start_x:start_x + phase_types.phase().shape[0],
+                start_y:start_y + phase_types.phase().shape[1]] = phase_types.phase()
+                phase += new_phase
+            elif self.vars[ind].get() == 1:
                 phase += phase_types.phase()
 
         return phase
-
     def save(self, filepath=None):
         """
         Save the current settings to a file.
