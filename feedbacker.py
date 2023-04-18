@@ -223,13 +223,14 @@ class feedbacker(object):
 
 
         lbl_comment = tk.Label(frm_meas, text='comment:')
-        self.strvar_comment = tk.StringVar(self.win, 'i like trains')
+        self.strvar_comment = tk.StringVar(self.win, ' ')
         self.ent_comment = tk.Entry(
             frm_meas, width=10,  validate='none',
             textvariable=self.strvar_comment)     
 
 
         but_meas_scan = tk.Button(frm_meas, text='Measure + Save', command=self.enabl_mcp)
+        but_meas_simple = tk.Button(frm_meas, text='Single_Image', command=self.enabl_mcp_simple)
 
 
         # setting up
@@ -319,7 +320,8 @@ class feedbacker(object):
         self.ent_comment.grid(row=4, column=1)
 
         but_meas_scan.grid(row=5, column=0)
-        
+        but_meas_simple.grid(row=5, column=1)
+
         
         # setting up cam image
         if self.CAMERA:
@@ -411,6 +413,13 @@ class feedbacker(object):
         self.mcp_thread.start()
 
 
+    def enabl_mcp_simple(self):
+        global stop_mcp
+        stop_mcp=False
+        self.mcp_thread = threading.Thread(target=self.measure_simple)
+        self.mcp_thread.daemon = True
+        self.mcp_thread.start()
+
     def measure(self):
         print("now I am measuring",float(self.ent_from.get()))
         
@@ -462,6 +471,49 @@ class feedbacker(object):
                     print("Phase: ", round(phi,2)," Elapsed time: ", round(elapsed_time,2)) 
                     f.write(str(int(start_image+ind))+"\t"+str(round(phi,2))+"\n")
         f.close()
+        return image
+    
+    
+    def measure_simple(self):
+        print("now I am measuring one simple image")
+        
+        name = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' + 'auto-log.txt'
+        if exists(name):
+            print("a log file already exists!")
+            lines = np.loadtxt(name, comments="#", delimiter="\t", unpack=False)
+            f= open(name,"a+")
+            print(lines.shape)
+            #last_line = f.readlines()[-1]
+            start_image=lines[-1,0] +1
+            print("The last image had index " + str(int(start_image-1)))
+        else:
+            f= open(name,"a+")
+            start_image = 0
+        
+        f.write("# simple measurement, "+ " avgs: " + str(self.ent_avgs.get()) +str(self.ent_comment.get())+"\n")
+     
+        with Vimba.get_instance() as vimba:
+          cams = vimba.get_all_cameras()
+          image = np.zeros([1000, 1600])
+          start_time = time.time()
+                
+          nr =  int(self.ent_avgs.get())
+          with cams[0] as cam:
+              for frame in cam.get_frame_generator(limit = int(self.ent_avgs.get())):
+                  frame = cam.get_frame()
+                  frame.convert_pixel_format(PixelFormat.Mono8)
+                  img = frame.as_opencv_image()
+                  img = np.squeeze(frame.as_opencv_image())
+                  numpy_image = img
+                  image = image + numpy_image
+              image = image/nr
+              end_time = time.time()
+              elapsed_time = end_time - start_time
+              filename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' + str(int(start_image+1)) + '.bmp'
+              cv2.imwrite(filename, image)
+              print("simple image taken, Elapsed time: ", round(elapsed_time,2)) 
+              f.write(str(int(start_image))+"\n")
+              f.close()
         return image
 
     def press_callback(self, key): 
