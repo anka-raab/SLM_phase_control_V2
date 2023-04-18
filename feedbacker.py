@@ -21,8 +21,14 @@ import draw_polygon
 from simple_pid import PID
 import threading
 from pynput import keyboard
+from datetime import date
+from os.path import exists
 
+import sys
+sys.path.insert(0, "C:/Users/atto/camera_git/Vimba_6.0/VimbaPython/Source/")
 
+import cv2
+from vimba import *
 
 class feedbacker(object):
     """works back and forth with publish_window"""
@@ -58,6 +64,9 @@ class feedbacker(object):
         frm_ratio = tk.LabelFrame(frm_mid, text='Phase extraction')
         frm_pid = tk.LabelFrame(frm_mid, text='PID controller')
         
+        frm_meas = tk.LabelFrame(frm_mid, text='Proper Phase Scan')
+
+        
         vcmd = (self.win.register(self.parent.callback))
 
         # creating buttons n labels
@@ -66,7 +75,7 @@ class feedbacker(object):
         if self.CAMERA:
             but_cam_img = tk.Button(frm_cam_but, text='Get image', command=self.cam_img)
             but_cam_line = tk.Button(frm_cam_but, text='Plot fft', command=self.plot_fft)
-            but_cam_phi = tk.Button(frm_cam_but, text='Scan 2pi', command=self.fast_scan)
+            but_cam_phi = tk.Button(frm_cam_but, text='scan 2pi fast', command=self.fast_scan)
             lbl_cam_ind = tk.Label(frm_cam_but_set, text='Camera index:')
             self.strvar_cam_ind = tk.StringVar(self.win,'2')
             self.ent_cam_ind = tk.Entry(
@@ -112,7 +121,7 @@ class feedbacker(object):
                                       command=self.spc_img, height=2)
             but_spc_stop = tk.Button(frm_spc_but, text='Stop\nSpectrometer',
                                      command=self.stop_measure, height=2)
-            but_spc_phi = tk.Button(frm_spc_but, text='Scan 2pi',
+            but_spc_phi = tk.Button(frm_spc_but, text='fast 2pi',
                                     command=self.fast_scan, height=2)     
             but_auto_scale = tk.Button(frm_plt_set, text='auto-scale',
                                     command=self.auto_scale_spec_axis, width=13)
@@ -160,6 +169,8 @@ class feedbacker(object):
             self.cbx_dir = tk.ttk.Combobox(frm_ratio, width=10,
                                            values=['horizontal', 'vertical'])
             self.cbx_dir.current(0)
+            
+            
         lbl_setp = tk.Label(frm_pid, text='Setpoint:')
         self.strvar_setp = tk.StringVar(self.win,'0')
         self.ent_setp = tk.Entry(
@@ -167,13 +178,13 @@ class feedbacker(object):
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_setp)
         lbl_pidp = tk.Label(frm_pid, text='P-value:')
-        self.strvar_pidp = tk.StringVar(self.win,'1')
+        self.strvar_pidp = tk.StringVar(self.win,'-0.2')
         self.ent_pidp = tk.Entry(
             frm_pid, width=11,  validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_pidp)
         lbl_pidi = tk.Label(frm_pid, text='I-value:')
-        self.strvar_pidi = tk.StringVar(self.win,'0')
+        self.strvar_pidi = tk.StringVar(self.win,'-0.8')
         self.ent_pidi = tk.Entry(
             frm_pid, width=11,  validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
@@ -184,12 +195,50 @@ class feedbacker(object):
         but_pid_setk = tk.Button(frm_pid, text='Set PID values', command=self.set_pid_val)
 
 
+
+        lbl_from = tk.Label(frm_meas, text='From:')
+        self.strvar_from = tk.StringVar(self.win,'-2.6')
+        self.ent_from = tk.Entry(
+            frm_meas, width=5,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_from)
+        lbl_to = tk.Label(frm_meas, text='To:')
+        self.strvar_to = tk.StringVar(self.win,'2.6')
+        self.ent_to = tk.Entry(
+            frm_meas, width=5,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_to)
+        lbl_steps = tk.Label(frm_meas, text='Steps:')
+        self.strvar_steps = tk.StringVar(self.win,'10')
+        self.ent_steps = tk.Entry(
+            frm_meas, width=5,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_steps)     
+        lbl_avgs = tk.Label(frm_meas, text='Avgs:')
+        self.strvar_avgs = tk.StringVar(self.win,'5')
+        self.ent_avgs = tk.Entry(
+            frm_meas, width=5,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_avgs)     
+
+
+        lbl_comment = tk.Label(frm_meas, text='comment:')
+        self.strvar_comment = tk.StringVar(self.win, 'i like trains')
+        self.ent_comment = tk.Entry(
+            frm_meas, width=10,  validate='none',
+            textvariable=self.strvar_comment)     
+
+
+        but_meas_scan = tk.Button(frm_meas, text='Measure + Save', command=self.enabl_mcp)
+
+
         # setting up
         if self.CAMERA:
             frm_cam.grid(row=0, column=0, sticky='nsew')
             frm_cam_but.grid(row=1, column=0, sticky='nsew')
         else:
             frm_spc_but.grid(row=0, column=0, sticky='nsew')
+            
         frm_plt.grid(row=1, column=0, sticky='nsew')
         frm_mid.grid(row=2, column=0, sticky='nsew')
         frm_bot.grid(row=3, column=0)
@@ -201,7 +250,10 @@ class feedbacker(object):
             frm_plt_set.grid(row=0, column=0, padx=5)
             frm_ratio.grid(row=0, column=1, padx=5)
             frm_pid.grid(row=0, column=2, padx=5)
+            frm_meas.grid(row=0, column=3, padx=5)
+
             frm_ratio.config(width=162, height=104)
+            
         frm_ratio.grid_propagate(False)
 
         # setting up buttons frm_cam / frm_spc
@@ -252,7 +304,23 @@ class feedbacker(object):
         but_pid_setk.grid(row=3, column=1)
         but_pid_enbl.grid(row=1, column=2)
         but_pid_stop.grid(row=2, column=2)
+        
+        
+        # setting up frm_meas
+        lbl_from.grid(row=0, column=0)
+        lbl_to.grid(row=1, column=0)
+        lbl_steps.grid(row=2, column=0)
+        lbl_avgs.grid(row=3, column=0)
+        lbl_comment.grid(row=4, column=0)
+        self.ent_from.grid(row=0, column=1)
+        self.ent_to.grid(row=1, column=1)
+        self.ent_steps.grid(row=2, column=1)
+        self.ent_avgs.grid(row=3, column=1)
+        self.ent_comment.grid(row=4, column=1)
 
+        but_meas_scan.grid(row=5, column=0)
+        
+        
         # setting up cam image
         if self.CAMERA:
             self.img_canvas = tk.Canvas(frm_cam, height=350, width=500)
@@ -333,6 +401,68 @@ class feedbacker(object):
         if not self.CAMERA:
             self.spec_interface_initialized = False
             self.active_spec_handle = None
+
+   
+    def enabl_mcp(self):
+        global stop_mcp
+        stop_mcp=False
+        self.mcp_thread = threading.Thread(target=self.measure)
+        self.mcp_thread.daemon = True
+        self.mcp_thread.start()
+
+
+    def measure(self):
+        print("now I am measuring",float(self.ent_from.get()))
+        
+        name = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' + 'auto-log.txt'
+        if exists(name):
+            print("a log file already exists!")
+            lines = np.loadtxt(name, comments="#", delimiter="\t", unpack=False)
+            f= open(name,"a+")
+            print(lines.shape)
+            #last_line = f.readlines()[-1]
+            start_image=lines[-1,0] +1
+            print("The last image had index " + str(int(start_image-1)))
+        else:
+            f= open(name,"a+")
+            start_image = 0
+        
+        f.write("# "+ " from: " +str(self.ent_from.get()) + " to: " + str(self.ent_to.get()) + " Steps: " + str(self.ent_steps.get()) + " avgs: " + str(self.ent_avgs.get()) +str(self.ent_comment.get())+"\n")
+        self.phis = np.linspace(float(self.ent_from.get()),float(self.ent_to.get()),int(self.ent_steps.get()))
+        
+        print("getting to scan starting point...")
+        self.strvar_setp.set(self.phis[0])
+        self.set_setpoint()
+        time.sleep(3)
+        print("Ready to scan!")
+        
+        for ind,phi in enumerate(self.phis):
+            self.strvar_setp.set(phi)
+            self.set_setpoint()
+            with Vimba.get_instance() as vimba:
+                cams = vimba.get_all_cameras()
+                image = np.zeros([1000, 1600])
+                start_time = time.time()
+                
+                nr =  int(self.ent_avgs.get())
+                
+                with cams[0] as cam:
+                    for frame in cam.get_frame_generator(limit = int(self.ent_avgs.get())):
+                       frame = cam.get_frame()
+                       frame.convert_pixel_format(PixelFormat.Mono8)
+                       img = frame.as_opencv_image()
+                       img = np.squeeze(frame.as_opencv_image())
+                       numpy_image = img
+                       image = image + numpy_image
+                    image = image/nr
+                    end_time = time.time()
+                    elapsed_time = end_time - start_time
+                    filename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' + str(int(start_image+ind+1)) + '.bmp'
+                    cv2.imwrite(filename, image)
+                    print("Phase: ", round(phi,2)," Elapsed time: ", round(elapsed_time,2)) 
+                    f.write(str(int(start_image+ind))+"\t"+str(round(phi,2))+"\n")
+        f.close()
+        return image
 
     def press_callback(self, key): 
         if key == keyboard.Key.esc:
@@ -639,7 +769,7 @@ class feedbacker(object):
     def set_pid_val(self):
         self.pid.Kp = float(self.ent_pidp.get())
         self.pid.Ki = float(self.ent_pidi.get())
-        print(self.pid.tunings)
+        #print(self.pid.tunings)
     
     def pid_strt(self):
         self.set_setpoint()
@@ -650,7 +780,7 @@ class feedbacker(object):
             correction = self.pid((self.im_angl - self.setpoint + np.pi) % (2*np.pi) - np.pi)
             self.strvar_flat.set(correction)
             self.feedback()
-            print(self.pid.components)
+            #print(self.pid.components)
             global stop_pid
             if stop_pid:
                 break
