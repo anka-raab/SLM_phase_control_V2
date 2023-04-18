@@ -13,6 +13,7 @@ import preview_window
 if SANTEC_SLM: import santec_driver._slm_py as slm
 else:          import publish_window
 import feedbacker
+import mcp
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib
@@ -34,6 +35,10 @@ class main_screen(object):
         self.pub_win = None
         self.prev_win = None
         self.fbck_win = None
+        
+        #MCP window
+        self.mcp_win = None
+
         self.phase_map = np.zeros(slm_size)
 
         # creating frames
@@ -54,6 +59,7 @@ class main_screen(object):
             lbl_screen = tk.Label(frm_top, text='SLM screen position:')
 
         # Creating buttons
+        but_mcp = tk.Button(frm_bot, text='MCP', command=self.open_MCP)
         but_fbck = tk.Button(frm_bot, text='Feedbacker', command=self.open_fbck)
         but_prev = tk.Button(frm_bot, text='Preview', command=self.open_prev)
         but_pub = tk.Button(frm_bot, text='Publish', command=self.open_pub)
@@ -95,10 +101,11 @@ class main_screen(object):
         self.ax1.axes.yaxis.set_visible(False)
 
         # Setting up bot frame
-        but_fbck.grid(row=0, column=0, padx=5, ipadx=5)
-        but_prev.grid(row=0, column=1, padx=5, pady=5, ipadx=5)
-        but_pub.grid(row=0, column=2, pady=5, ipadx=5)
-        but_exit.grid(row=0, column=3, padx=10, pady=5, ipadx=5)
+        but_mcp.grid(row=0, column=0, padx=5, ipadx=5)
+        but_fbck.grid(row=0, column=1, padx=5, ipadx=5)
+        but_prev.grid(row=0, column=2, padx=5, pady=5, ipadx=5)
+        but_pub.grid(row=0, column=3, pady=5, ipadx=5)
+        but_exit.grid(row=0, column=4, padx=10, pady=5, ipadx=5)
 
         # binding keys
         def lefthandler(event): return self.left_arrow()
@@ -114,6 +121,11 @@ class main_screen(object):
 
         # loading last settings
         self.load('./last_settings.txt')
+        
+        
+    def open_MCP(self):
+        self.mcp_win = mcp.mcp(self)
+        print("halleluja")
 
     def open_fbck(self):
         if self.fbck_win is None:
@@ -249,6 +261,7 @@ class main_screen(object):
                     self.vars[num].set(dics[phase.name_()]['Enabled'])
                 self.ent_scr.delete(0, tk.END)
                 self.ent_scr.insert(0, dics['screen_pos'])
+                print("file loaded successfully")
             except ValueError:
                 print('Not able to load settings')
         except FileNotFoundError:

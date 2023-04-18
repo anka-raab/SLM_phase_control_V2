@@ -57,7 +57,7 @@ class prev_screen(object):
         self.ax1.set_ylabel('Input')
         #
         self.ax2.clear()
-        self.ax2.imshow(input_phase)
+        self.ax2.imshow(input_phase, cmap = "RdBu")
         self.ax2.set_title('Phase')
         #
         fsiz = np.divide(focus_int.shape, 2)

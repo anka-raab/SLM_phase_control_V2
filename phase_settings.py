@@ -708,7 +708,7 @@ class type_vortex(base_type):
         y = np.linspace(-chip_height*500+dy, chip_height*500+dy, slm_size[0])
         [X, Y] = np.meshgrid(x, y)
         theta = np.arctan(Y/X)
-        theta[X < 0] += np.pi
+        theta[X < 0] += 1*np.pi
         phase = theta*bit_depth/(2*np.pi)*vor
         return phase
 
