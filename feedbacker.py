@@ -49,6 +49,9 @@ class feedbacker(object):
             self.win.geometry('500x950+300+100')
         self.rect_id = 0
 
+        global meas_has_started
+        meas_has_started = False
+        
         # creating frames
         frm_bot = tk.Frame(self.win)
         frm_plt = tk.Frame(self.win)
@@ -338,8 +341,12 @@ class feedbacker(object):
             self.axMCP=self.figrMCP.add_subplot(211)
             self.axHarmonics=self.figrMCP.add_subplot(212)
             self.axMCP.set_xlim(0,1600)
+         
             self.axMCP.set_ylim(0,1000)
             self.axHarmonics.set_xlim(0,1600)
+            self.axHarmonics.set_aspect(1600/1000)
+
+
             #self.axHarmonics.set_ylim(0,100)
             #self.harmonics, = self.axHarmonics.plot([])
             self.figrMCP.tight_layout()
@@ -366,6 +373,7 @@ class feedbacker(object):
         self.ax1r.grid()
         self.ax2r.set_xlim(0, 50)
         self.ax2r.set_ylim(0, .6)
+        self.figr.tight_layout()
         self.figr.canvas.draw()
         self.img1r = FigureCanvasTkAgg(self.figr, frm_plt)
         self.tk_widget_figr = self.img1r.get_tk_widget()
@@ -380,6 +388,7 @@ class feedbacker(object):
         self.ax1p.set_xlim(0, 1000)
         self.ax1p.set_ylim([-np.pi, np.pi])
         self.ax1p.grid()
+        self.figp.tight_layout()
         self.figp.canvas.draw()
         self.img1p = FigureCanvasTkAgg(self.figp, frm_plt)
         self.tk_widget_figp = self.img1p.get_tk_widget()
@@ -477,9 +486,15 @@ class feedbacker(object):
                 cams = vimba.get_all_cameras()
                 image = np.zeros([1000, 1600])
                 start_time = time.time()
-                
+                time.sleep(0.5)
+                phasefilename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' +str(int(start_image+ind))+ '-' + 'phase_values.txt'
+                global g
+                g = open(phasefilename,"a+")
+                global meas_has_started
+                meas_has_started = True
+
                 nr =  int(self.ent_avgs.get())
-                
+                    
                 with cams[0] as cam:
                     for frame in cam.get_frame_generator(limit = int(self.ent_avgs.get())):
                        frame = cam.get_frame()
@@ -491,11 +506,13 @@ class feedbacker(object):
                     image = image/nr
                     end_time = time.time()
                     elapsed_time = end_time - start_time
-                    filename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' + str(int(start_image+ind+1)) + '.bmp'
+                    filename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' + str(int(start_image+ind)) + '.bmp'
                     cv2.imwrite(filename, image)
                     print("Phase: ", round(phi,2)," Elapsed time: ", round(elapsed_time,2)) 
                     f.write(str(int(start_image+ind))+"\t"+str(round(phi,2))+"\n")
                     self.plot_MCP(image)
+                    meas_has_started = False
+                    g.close()
 
         f.close()
         return image
@@ -521,12 +538,20 @@ class feedbacker(object):
             start_image = 0
         
         f.write("# simple measurement, "+ " avgs: " + str(self.ent_avgs.get()) +str(self.ent_comment.get())+"\n")
-     
+        
+
+        
         with Vimba.get_instance() as vimba:
           cams = vimba.get_all_cameras()
           image = np.zeros([1000, 1600])
           start_time = time.time()
-                
+          
+          phasefilename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' +str(int(start_image))+ '-' + 'phase_values.txt'
+          global g
+          g = open(phasefilename,"a+")
+          global meas_has_started
+          meas_has_started = True
+          
           nr =  int(self.ent_avgs.get())
           with cams[0] as cam:
               for frame in cam.get_frame_generator(limit = int(self.ent_avgs.get())):
@@ -539,12 +564,14 @@ class feedbacker(object):
               image = image/nr
               end_time = time.time()
               elapsed_time = end_time - start_time
-              filename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' + str(int(start_image+1)) + '.bmp'
+              filename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' + str(int(start_image)) + '.bmp'
               cv2.imwrite(filename, image)
+              meas_has_started=False
               print("simple image taken, Elapsed time: ", round(elapsed_time,2)) 
               f.write(str(int(start_image))+ "\t"+ str(0) + "\n")
               f.close()
               self.plot_MCP(image)
+              g.close()
         return image
 
     def press_callback(self, key): 
@@ -723,7 +750,9 @@ class feedbacker(object):
             if self.stop_acquire == 1:
                 self.stop_acquire = 0
                 break
-            
+            if meas_has_started:
+                #print("phase saving should be activated")
+                g.write(str(self.im_angl)+"\n")
             self.plot_fft_blit()
 
 
@@ -764,10 +793,20 @@ class feedbacker(object):
         
     def plot_MCP(self,mcpimage):
        self.axMCP.clear()
-       self.axMCP.imshow(mcpimage,vmin=0,vmax=2)
+       self.axMCP.imshow(mcpimage,vmin=0,vmax=2,extent=[0,1600,0,1000])
        self.axHarmonics.clear()
        self.axHarmonics.plot(np.arange(1600),np.sum(mcpimage,0))
-       #self.axHarmonics.draw_artist(self.harmonics)
+       self.axHarmonics.set_xlabel("X (px)")
+       self.axHarmonics.set_ylabel("Counts (arb.u.)")
+       self.axMCP.set_xlabel("X (px)")
+       self.axMCP.set_ylabel("Y (px)")
+       self.axMCP.set_xlim(0,1600)
+
+       self.axMCP.set_ylim(0,1000)
+       self.axHarmonics.set_xlim(0,1600)
+       self.axHarmonics.set_aspect(1600/1000)       
+       self.figrMCP.tight_layout()
+
        self.imgMCP.draw()
     
     def plot_fft(self):
