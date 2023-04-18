@@ -52,6 +52,8 @@ class feedbacker(object):
         # creating frames
         frm_bot = tk.Frame(self.win)
         frm_plt = tk.Frame(self.win)
+        frm_mcp_image = tk.Frame(self.win)
+
         frm_mid = tk.Frame(self.win)
         if self.CAMERA:
             frm_cam = tk.Frame(self.win)
@@ -230,7 +232,7 @@ class feedbacker(object):
 
 
         but_meas_scan = tk.Button(frm_meas, text='Measure + Save', command=self.enabl_mcp)
-        but_meas_simple = tk.Button(frm_meas, text='Single_Image', command=self.enabl_mcp_simple)
+        but_meas_simple = tk.Button(frm_meas, text='Single Image + Save', command=self.enabl_mcp_simple)
 
 
         # setting up
@@ -241,6 +243,8 @@ class feedbacker(object):
             frm_spc_but.grid(row=0, column=0, sticky='nsew')
             
         frm_plt.grid(row=1, column=0, sticky='nsew')
+        frm_mcp_image.grid(row=1, column=2, sticky='nsew')
+        
         frm_mid.grid(row=2, column=0, sticky='nsew')
         frm_bot.grid(row=3, column=0)
         if self.CAMERA:
@@ -329,7 +333,23 @@ class feedbacker(object):
             self.img_canvas.grid(row=0, sticky='nsew')
             self.img_canvas.configure(bg='grey')
             self.image = self.img_canvas.create_image(0, 0, anchor="nw")
+        else:
+            self.figrMCP = Figure(figsize=(5, 5), dpi=100)
+            self.axMCP=self.figrMCP.add_subplot(211)
+            self.axHarmonics=self.figrMCP.add_subplot(212)
+            self.axMCP.set_xlim(0,1600)
+            self.axMCP.set_ylim(0,1000)
+            self.axHarmonics.set_xlim(0,1600)
+            #self.axHarmonics.set_ylim(0,100)
+            #self.harmonics, = self.axHarmonics.plot([])
+            self.figrMCP.tight_layout()
+            self.figrMCP.canvas.draw()
+            self.imgMCP=FigureCanvasTkAgg(self.figrMCP, frm_mcp_image)
+            self.tk_widget_figrMCP = self.imgMCP.get_tk_widget()
+            self.tk_widget_figrMCP.grid(row=0, column=0, sticky='nsew')
+            self.imgMCP.draw()
 
+            
         # setting up frm_plt
         if self.CAMERA: sizefactor = 1
         else: sizefactor = 1.05
@@ -411,7 +431,9 @@ class feedbacker(object):
         self.mcp_thread = threading.Thread(target=self.measure)
         self.mcp_thread.daemon = True
         self.mcp_thread.start()
-
+    
+       
+  
 
     def enabl_mcp_simple(self):
         global stop_mcp
@@ -430,7 +452,10 @@ class feedbacker(object):
             f= open(name,"a+")
             print(lines.shape)
             #last_line = f.readlines()[-1]
-            start_image=lines[-1,0] +1
+            try:
+                start_image=lines[-1,0] +1
+            except:
+                start_image=lines[-1] +1
             print("The last image had index " + str(int(start_image-1)))
         else:
             f= open(name,"a+")
@@ -470,6 +495,8 @@ class feedbacker(object):
                     cv2.imwrite(filename, image)
                     print("Phase: ", round(phi,2)," Elapsed time: ", round(elapsed_time,2)) 
                     f.write(str(int(start_image+ind))+"\t"+str(round(phi,2))+"\n")
+                    self.plot_MCP(image)
+
         f.close()
         return image
     
@@ -484,7 +511,10 @@ class feedbacker(object):
             f= open(name,"a+")
             print(lines.shape)
             #last_line = f.readlines()[-1]
-            start_image=lines[-1,0] +1
+            try:
+                start_image=lines[-1,0] +1
+            except:
+                start_image=lines[-1] +1
             print("The last image had index " + str(int(start_image-1)))
         else:
             f= open(name,"a+")
@@ -512,8 +542,9 @@ class feedbacker(object):
               filename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' + str(int(start_image+1)) + '.bmp'
               cv2.imwrite(filename, image)
               print("simple image taken, Elapsed time: ", round(elapsed_time,2)) 
-              f.write(str(int(start_image))+"\n")
+              f.write(str(int(start_image))+ "\t"+ str(0) + "\n")
               f.close()
+              self.plot_MCP(image)
         return image
 
     def press_callback(self, key): 
@@ -729,7 +760,16 @@ class feedbacker(object):
         self.figr.canvas.draw()
         self.img1r.draw()
         self.ax1r_blit = self.figr.canvas.copy_from_bbox(self.ax1r.bbox)
+   
         
+    def plot_MCP(self,mcpimage):
+       self.axMCP.clear()
+       self.axMCP.imshow(mcpimage,vmin=0,vmax=2)
+       self.axHarmonics.clear()
+       self.axHarmonics.plot(np.arange(1600),np.sum(mcpimage,0))
+       #self.axHarmonics.draw_artist(self.harmonics)
+       self.imgMCP.draw()
+    
     def plot_fft(self):
         # find maximum in the fourier trace
         maxindex = np.where(self.abs_im_fft == np.max(self.abs_im_fft[3:50]))[0][0]
