@@ -1,11 +1,14 @@
 from model.settings import slm_size, wavelength, chip_width, chip_height, pixel_size, bit_depth
+from model.functions import initial_process, wgs_algo
+
 import numpy as np
 import tkinter as tk
+from scipy.interpolate import interp2d
+
 from matplotlib import pyplot as plt
 from matplotlib import image
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from model.functions import initial_process, wgs_algo
 
 focal_length = 250e-3  # mm
 delta_xy = 3.45e-6
@@ -24,12 +27,78 @@ extent_img = [x_img[0] * 1e3, x_img[-1] * 1e3, y_img[0] * 1e3, y_img[-1] * 1e3]
 
 
 class AberrationWindow(object):
-    """create a window to access the algorithm from the main program"""
+    """
+    A class for creating an aberration window that allows for aberration correction using an SLM phase control system.
 
+    Attributes
+    ----------
+    parent : object
+        The parent object.
+    win : tkinter.Toplevel
+        The tkinter Toplevel widget for the window.
+    vcmd : tkinter.StringVar
+        The tkinter StringVar object for validation.
+    strvar_wavelength : tkinter.StringVar
+        The tkinter StringVar object for wavelength.
+    ent_wavelength : tkinter.Entry
+        The tkinter Entry widget for wavelength input.
+    strvar_f : tkinter.StringVar
+        The tkinter StringVar object for focal length.
+    ent_f : tkinter.Entry
+        The tkinter Entry widget for focal length input.
+    strvar_it : tkinter.StringVar
+        The tkinter StringVar object for convergence criterion.
+    ent_it : tkinter.Entry
+        The tkinter Entry widget for convergence criterion input.
+    lbl_initial_image_file : tkinter.Label
+        The tkinter Label widget for the initial image file.
+    lbl_target_image_file : tkinter.Label
+        The tkinter Label widget for the target image file.
+    tk_widget_fig_initial : matplotlib.backends.backend_tkagg.FigureCanvasTkAgg
+        The tkinter canvas widget for the initialisation figure.
+    ax1_initialisation : matplotlib.axes._subplots.AxesSubplot
+        The matplotlib axes for the initialisation figure.
+    ax2_initialisation : matplotlib.axes._subplots.AxesSubplot
+        The matplotlib axes for the initialisation figure.
+    fig_initialisation : matplotlib.figure.Figure
+        The matplotlib figure for the initialisation figure.
+    btn_process : tkinter.Button
+        The tkinter button for image processing.
+    ax1_final : matplotlib.axes._subplots.AxesSubplot
+        The matplotlib axes for the final figure.
+    ax2_final : matplotlib.axes._subplots.AxesSubplot
+        The matplotlib axes for the final figure.
+    ax3_final : matplotlib.axes._subplots.AxesSubplot
+        The matplotlib axes for the final figure.
+    ax4_final : matplotlib.axes._subplots.AxesSubplot
+        The matplotlib axes for the final figure.
+    fig_final : matplotlib.figure.Figure
+        The matplotlib figure for the final figure.
+    btn_gen : tkinter.Button
+        The tkinter button for generating the phase pattern.
+
+    Methods
+    -------
+    __init__(self, parent):
+        Initializes the AberrationWindow class.
+    open_file_initial_image(self):
+        Opens a file dialog for selecting the initial image file.
+    open_file_target_image(self):
+        Opens a file dialog for selecting the target image file.
+    image_processing(self):
+        Processes the initial and target images and displays them in the initialisation figure.
+    calculate_phase(self):
+        Calculates the phase pattern for the SLM phase control system.
+    close_aberration_window(self):
+        Closes the aberration window.
+    """
     def __init__(self, parent):
+        """
+        Initialisation of the AberrationWindow class
+        """
         self.parent = parent
         self.win = tk.Toplevel()
-        self.win.protocol("WM_DELETE_WINDOW", self.close_GS)
+        self.win.protocol("WM_DELETE_WINDOW", self.close_aberration_window)
         self.win.title('SLM Phase Control - Aberration correction')
         self.vcmd = (parent.parent.register(parent.callback))
 
@@ -49,7 +118,7 @@ class AberrationWindow(object):
         lbl_it = tk.Label(frm_set, text='Convergence criterion:')
         self.strvar_it = tk.StringVar(value=0.9999999)
         self.ent_it = tk.Entry(frm_set, width=10, validate='all', validatecommand=(self.vcmd, '%d', '%P', '%S'),
-                              textvariable=self.strvar_it)
+                               textvariable=self.strvar_it)
 
         lbl_wavelength.grid(row=0, column=0, sticky='e')
         self.ent_wavelength.grid(row=0, column=1, sticky='w')
@@ -125,7 +194,7 @@ class AberrationWindow(object):
 
         # Main layout
         btn_ok = tk.Button(self.win, text='OK', command=self.take_pattern)
-        btn_close = tk.Button(self.win, text='Close', command=self.close_GS)
+        btn_close = tk.Button(self.win, text='Close', command=self.close_aberration_window)
         frm_set.grid(row=0, columnspan=2, sticky='nw', padx=5, pady=5)
         frm_load_initial_image.grid(row=1, column=0, sticky='nw', padx=5, pady=5)
         frm_load_target_image.grid(row=1, column=1, sticky='nw', padx=5, pady=5)
@@ -135,6 +204,9 @@ class AberrationWindow(object):
         btn_close.grid(row=4, column=1, padx=5, pady=5)
 
     def open_file_initial_image(self):
+        """
+        Opens a file dialog for selecting the initial image file.
+        """
         filepath_initial_image = tk.filedialog.askopenfilename(filetypes=[('Image Files', '*.bmp')])
 
         self.img_initial_image = np.array(image.imread(filepath_initial_image))
@@ -144,6 +216,9 @@ class AberrationWindow(object):
         self.img_initialisation.draw()
 
     def open_file_target_image(self):
+        """
+        Opens a file dialog for selecting the target image file.
+        """
         filepath_target_image = tk.filedialog.askopenfilename(filetypes=[('Image Files', '*.bmp')])
 
         self.img_target_image = np.array(image.imread(filepath_target_image))
@@ -153,7 +228,10 @@ class AberrationWindow(object):
         self.img_initialisation.draw()
 
     def image_processing(self):
-        self.initial_image, cut_x, cut_y = initial_process(self.img_initial_image, delta_xy)
+        """
+        Processes the initial and target images and displays them in the initialisation figure.
+        """
+        self.initial_image, _, _ = initial_process(self.img_initial_image, delta_xy)
         self.target_image, _, _ = initial_process(self.img_target_image, delta_xy)
         # XY_plot, XY_prime_plot = utils_plot(cut_x, cut_y, delta_xy, wavelength, focal_length)
 
@@ -162,20 +240,39 @@ class AberrationWindow(object):
         self.img_initialisation.draw()
 
     def calculate_phase(self):
+        """
+        Calculate the phase pattern using the Weighted Gerchberg Saxton algorithm.
+        """
         crit_convergence = float(self.ent_it.get())
 
-        r_image_focus, r_image_slm, r_phase_focus, self.pattern = \
+        r_image_focus, r_image_slm, r_phase_focus, r_phase_slm = \
             wgs_algo(self.initial_image, self.target_image, crit_convergence=crit_convergence)
 
-        self.ax1_final.imshow(r_image_focus, cmap='inferno', interpolation='None')
-        self.ax2_final.imshow(r_phase_focus, cmap='RdBu', interpolation='None')
-        self.ax3_final.imshow(r_image_slm, cmap='inferno', interpolation='None')
-        self.ax4_final.imshow(self.pattern, cmap='RdBu', interpolation='None')
+        self.ax1_final.imshow(r_image_focus, cmap='inferno', interpolation='None', extent=extent_img)
+        self.ax2_final.imshow(r_phase_focus, cmap='RdBu', interpolation='None', extent=extent_img)
+        self.ax3_final.imshow(r_image_slm, cmap='inferno', interpolation='None', extent=extent_slm)
+        self.ax4_final.imshow(r_phase_slm, cmap='RdBu', interpolation='None', extent=extent_slm)
+
+        self.pattern_to_resize = r_phase_slm
+
         self.img_final.draw()
 
     def take_pattern(self):
-        self.parent.img = self.pattern / (2 * np.pi) * bit_depth
+        """
+        interpolate and send to the main window the retrieved phase pattern.
+        """
+        # create a 1200 x 1920 grid (slm size)
+        x_new = np.linspace(0, 1, 1920)
+        y_new = np.linspace(0, 1, 1200)
+        interp_func = interp2d(np.linspace(0, 1, 256), np.linspace(0, 1, 256), self.pattern_to_resize, kind='linear')
+        self.pattern = interp_func(x_new, y_new)
 
-    def close_GS(self):
+        self.parent.img = self.pattern / (2 * np.pi) * bit_depth
+        print('Ready to publish')
+
+    def close_aberration_window(self):
+        """
+        Close the aberration control window.
+        """
         self.win.destroy()
         self.parent.gen_win = None

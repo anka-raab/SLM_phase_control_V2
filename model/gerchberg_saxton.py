@@ -9,7 +9,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 maxit = 100  # maximum number of iterations allowed
 
-focal_length = 150e-3
+focal_length = 250e-3
 distance = 500e-3
 
 # coordinates in the SLM plane

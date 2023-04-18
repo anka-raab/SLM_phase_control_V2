@@ -3,9 +3,6 @@ from scipy import ndimage
 from numpy.fft import fftshift, fft2, ifft2
 from time import time
 
-""" Useful set of  functions to process the beam profile"""
-
-
 def find_second_order_moment(image):
     """
     Calculate the second order moments (also known as variances) of a 2D array.
@@ -140,10 +137,11 @@ def process_image(image):
     image[neighbors & (image > 0)] = 0
 
     # Calculate the second order moment (variance)
-    som = find_second_order_moment(image)
+    # som = find_second_order_moment(image)
 
     # Calculate the radius such as the number is the next 2**n
-    radius = 2 ** np.ceil(np.log2((np.max(som[1]) + np.max(som[0])) / 2))
+    # radius = 2 ** np.ceil(np.log2((np.max(som[1]) + np.max(som[0])) / 2))
+    radius = 128  # With the current setup, it's for some reason always 128
 
     # Cut the value outside the circle of chosen radius
     new_image, cut_x, cut_y = set_outside_circle_to_zero(image, radius)
@@ -349,7 +347,7 @@ def wgs_algo(initial_image_focus, target_image_focus, max_iter=1000, crit_conver
 
     Notes
     -----
-    The Weighted Gerchberg-Saxton algorithm is an iterative algorithm for phase retrieval in optical imaging.
+    The Gerchberg-Saxton algorithm is an iterative algorithm for phase retrieval in optical imaging.
     It uses an initial estimate of the phase in the SLM plane to calculate the complex field at the focus plane,
     and then imposes the modulus of the target image at the focus plane.
     This complex field is then propagated back to the SLM plane, where the phase is updated based on the target modulus

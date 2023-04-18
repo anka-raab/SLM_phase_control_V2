@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import scipy
 
 import tkinter as tk
 from tkinter import ttk
@@ -16,7 +15,7 @@ from tkinter.filedialog import askopenfilename, asksaveasfilename
 import santec_driver._slm_py as slm
 from model import phase_settings, feedbacker
 from model.settings import slm_size, bit_depth
-from views import preview_window, questionbox
+from views import preview_window, questionbox, camera_control
 
 matplotlib.use("TkAgg")
 
@@ -87,6 +86,7 @@ class MainScreen(object):
         self.pub_win = None
         self.prev_win = None
         self.feedback_win = None
+        self.camera_win = None
         self.phase_map = np.zeros(slm_size)
 
         # creating frames
@@ -104,6 +104,7 @@ class MainScreen(object):
         lbl_screen = tk.Label(frm_top, text='SLM display number:')
 
         # Creating buttons
+        but_camera = tk.Button(frm_bot, text='Camera', command=self.open_camera)
         but_fbck = tk.Button(frm_bot, text='Feedbacker', command=self.open_feedback)
         but_prev = tk.Button(frm_bot, text='Preview', command=self.open_prev)
         but_pub = tk.Button(frm_bot, text='Publish', command=self.open_pub)
@@ -141,10 +142,11 @@ class MainScreen(object):
         self.ax1.axes.yaxis.set_visible(False)
 
         # Setting up bot frame
-        but_fbck.grid(row=0, column=0, padx=5, ipadx=5)
-        but_prev.grid(row=0, column=1, padx=5, pady=5, ipadx=5)
-        but_pub.grid(row=0, column=2, pady=5, ipadx=5)
-        but_exit.grid(row=0, column=3, padx=10, pady=5, ipadx=5)
+        but_camera.grid(row=0, column=0, padx=5, pady=5)
+        but_fbck.grid(row=0, column=1, padx=5, pady=5)
+        but_prev.grid(row=0, column=2, padx=5, pady=5)
+        but_pub.grid(row=0, column=3, padx=5, pady=5)
+        but_exit.grid(row=0, column=4, padx=5, pady=5)
 
         # binding keys
         def left_handler(event):
@@ -213,7 +215,7 @@ class MainScreen(object):
         method between using a camera with spatial fringes or a spectrometer with spectral fringes.
         """
         if self.feedback_win is None:
-            q_str1 = 'The feedbacker needs to look at fringes between the two beams.'
+            q_str1 = 'The feedbacker.py needs to look at fringes between the two beams.'
             q_str2 = 'Do you want to use a camera with spatial fringes or a spectrometer with spectral fringes?'
             q_str = q_str1 + '\n' + q_str2
             questionbox.PopupQuestion(self.open_feedback_window, 'Choose feedback method',
@@ -228,6 +230,12 @@ class MainScreen(object):
             or 'Open Spectrometer' for spectral fringes.
         """
         self.feedback_win = feedbacker.Feedbacker(self, slm, answer)
+
+    def open_camera(self):
+        """
+        Open the camera window to look at the beam profile
+        """
+        self.camera_win = camera_control.CameraControl(self, slm)
 
     def open_prev(self):
         """
@@ -259,7 +267,7 @@ class MainScreen(object):
         the update_phase_plot() method is called to update the phase plot.
         """
         self.ent_scr.config(state='disabled')
-        self.phase_map = np.angle(np.exp(1j * self.get_phase() / bit_depth))
+        self.phase_map = self.get_phase()
 
         self.pub_win = int(self.ent_scr.get())
         slm.SLM_Disp_Open(int(self.ent_scr.get()))
@@ -354,6 +362,7 @@ class MainScreen(object):
         for ind, phase_types in enumerate(self.phase_refs):
             # Check if phase array needs to be resized
             if self.vars[ind].get() == 1 and phase_types.phase().shape != (1200, 1920):
+                print('oui')
                 new_shape = (1200, 1920)
                 new_phase = np.zeros(new_shape)
                 start_x = (new_shape[0] - phase_types.phase().shape[0]) // 2
@@ -363,8 +372,8 @@ class MainScreen(object):
                 phase += new_phase
             elif self.vars[ind].get() == 1:
                 phase += phase_types.phase()
-
         return phase
+
     def save(self, filepath=None):
         """
         Save the current settings to a file.
@@ -689,7 +698,7 @@ class MainScreen(object):
             The new phase values to update.
         """
         self.ax1.clear()
-        self.ax1.imshow(np.angle(np.exp(1j * self.get_phase() / bit_depth)), cmap='twilight_shifted',
+        self.ax1.imshow(phase % (bit_depth+1), cmap='RdBu',
                         interpolation='None')
         self.img1.draw()
 
