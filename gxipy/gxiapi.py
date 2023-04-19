@@ -3,6 +3,8 @@
 # -*-mode:python ; tab-width:4 -*- ex:set tabstop=4 shiftwidth=4 expandtab: -*-
 
 import numpy
+from gxipy.gxwrapper import *
+from gxipy.dxwrapper import *
 from gxipy.gxidef import *
 import types
 

@@ -7,9 +7,7 @@ from model.settings import slm_size, bit_depth, chip_width, chip_height, wavelen
 import model.gerchberg_saxton as gs
 import model.aberration_correction as aberration
 
-print('types in')
-
-types = ['Background.', 'Flat', 'Tilt', 'Binary', 'Lens',
+types = ['Background', 'Flat', 'Tilt', 'Binary', 'Lens',
          'Multi', 'Vortex', 'Zernike', 'Image', 'Hologram', 'Aberration']
 
 
@@ -36,7 +34,7 @@ def new_type(frm_mid, typ):
         return TypeTilt(frm_mid)
     elif typ == 'Binary':
         return TypeBinary(frm_mid)
-    elif typ == 'Background.':
+    elif typ == 'Background':
         return TypeBackground(frm_mid)
     elif typ == 'Lens':
         return TypeLens(frm_mid)
@@ -76,6 +74,7 @@ class BaseType(object):
         """
         # Check if filepath is provided
         if not filepath:
+            print('pas chargé')
             return  # Return None if filepath is not provided
 
         try:
@@ -85,16 +84,20 @@ class BaseType(object):
                     # If it is a csv file, load it using numpy loadtxt function
                     # Skip the first row (header) and read all columns except the first column
                     self.img = np.loadtxt(filepath, delimiter=',', skiprows=1, usecols=np.arange(1920) + 1)
+                    print('chargé1')
                 except:
                     # If there's an error in loading the csv file, try loading it without skipping the header row
-                    np.loadtxt(filepath, delimiter=',')
+                    self.img = np.loadtxt(filepath, delimiter=',')
+                    print('chargé2')
             else:
                 # If the file is not a csv file, load it using matplotlib imread function
                 self.img = mpimg.imread(filepath)
+                print('chargé3')
                 if len(self.img.shape) == 3:  # Check if the image has 3 dimensions (multicolor image)
                     # If the image has 3 dimensions, convert it to grayscale by summing the values across the color
                     # channels
                     self.img = self.img.sum(axis=2)
+                    print('chargé4')
         except:
             # If there's an error in loading the file, print an error message
             print('File "' + filepath + '" not found')
@@ -177,6 +180,7 @@ class TypeBackground(BaseType):
     lbl_file : Tk label object
         The label that displays the selected file.
     """
+
     def __init__(self, parent):
         """
         Initialize the TypeBackground class.
@@ -188,7 +192,8 @@ class TypeBackground(BaseType):
 
         """
         self.name = 'Background'
-        self.frm_ = tk.Frame(parent)
+        self.parent = parent
+        self.frm_ = tk.Frame(self.parent)
         self.frm_.grid(row=0, column=0, sticky='nsew')
 
         # Create a label frame for the background settings
@@ -215,7 +220,7 @@ class TypeBackground(BaseType):
             The phase data.
 
         """
-        if self.lbl_file['text'] != '':
+        if self.img is not None:
             phase = self.img
         else:
             phase = np.zeros(slm_size)
@@ -513,6 +518,7 @@ class TypeBinary(BaseType):
     ent_phi : Tkinter Entry
         The entry object for entering the phase change in pi.
     """
+
     def __init__(self, parent):
         """
         Initialize the TypeBinary class.
@@ -633,6 +639,7 @@ class TypeLens(BaseType):
     ent_ben : tk.Entry
         A tkinter entry object for bending strength input.
     """
+
     def __init__(self, parent):
         """
         Initialize the TypeLens class.
@@ -763,6 +770,7 @@ class TypeMultibeam(BaseType):
     ent_pxsiz : tkinter.Entry
         The pixel size entry field.
     """
+
     def __init__(self, parent):
         """
         Initialize the TypeMultibeam class.
@@ -1144,7 +1152,7 @@ class TypeVortex(BaseType):
         y = np.linspace(-chip_height * 500 + dy, chip_height * 500 + dy, slm_size[0])
         [X, Y] = np.meshgrid(x, y)
         theta = np.arctan2(Y, X)
-        phase = vor * theta * bit_depth
+        phase = theta * bit_depth / (2 * np.pi) * vor
         return phase
 
     def save_(self):
@@ -1188,6 +1196,7 @@ class TypeZernike(BaseType):
     entries : list of Tkinter Entry
         List of Entry objects for user input.
     """
+
     def __init__(self, parent):
         """
         Initialize the TypeZernike class.
@@ -1342,6 +1351,7 @@ class TypeHologram(BaseType):
     img : numpy.ndarray or None
         A numpy array representing the image of the hologram.
     """
+
     def __init__(self, parent):
         """
         Initialize the Typehologram class.
@@ -1442,6 +1452,7 @@ class TypeAberration(BaseType):
     img : numpy.ndarray or None
         A numpy array representing the image of the aberration correction.
     """
+
     def __init__(self, parent):
         """
         Initialize the TypeAberration class.
@@ -1452,7 +1463,7 @@ class TypeAberration(BaseType):
             The parent window for the frame.
 
         """
-        self.name = 'A'
+        self.name = 'Aberration'
         self.parent = parent
         self.frm_ = tk.Frame(self.parent)
         self.frm_.grid(row=0, column=0, sticky='nsew')
@@ -1461,11 +1472,15 @@ class TypeAberration(BaseType):
         self.gen_win = None
         self.img = None
 
+        btn_open = tk.Button(lbl_frm, text='Open generated hologram', command=self.open_file)
         self.lbl_file = tk.Label(lbl_frm, text='', wraplength=400, justify='left', foreground='gray')
+        lbl_act_file = tk.Label(lbl_frm, text='Active Hologram file:', justify='left')
         btn_generate = tk.Button(lbl_frm, text='Launch aberration correction generator', command=self.open_generator)
 
-        self.lbl_file.grid(row=0)
-        btn_generate.grid(row=1)
+        btn_open.grid(row=0)
+        lbl_act_file.grid(row=1)
+        self.lbl_file.grid(row=2)
+        btn_generate.grid(row=3)
 
     def open_generator(self):
         """
@@ -1480,15 +1495,13 @@ class TypeAberration(BaseType):
 
     def phase(self):
         """
-        Get the current phase data.
-
-        If an image has been loaded, use its data as the phase. Otherwise,
-        create a zeros array phase.
+        Return the phase data based on the selected background file.
 
         Returns
         -------
-        phase : np.ndarray
+        phase : numpy array
             The phase data.
+
         """
         if self.img is not None:
             phase = self.img

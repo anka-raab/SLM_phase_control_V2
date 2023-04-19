@@ -111,6 +111,7 @@ class MainScreen(object):
         but_exit = tk.Button(frm_bot, text='EXIT', command=self.exit_prog)
         but_save = tk.Button(frm_topb, text='Save Settings', command=self.save)
         but_load = tk.Button(frm_topb, text='Load Settings', command=self.load)
+        but_clean_settings = tk.Button(frm_bot, text='Clean settings file', command=self.delete_last_settings_file)
 
         # Creating entry
         self.ent_scr = tk.Spinbox(frm_top, width=5, from_=1, to=8)
@@ -147,6 +148,7 @@ class MainScreen(object):
         but_prev.grid(row=0, column=2, padx=5, pady=5)
         but_pub.grid(row=0, column=3, padx=5, pady=5)
         but_exit.grid(row=0, column=4, padx=5, pady=5)
+        but_clean_settings.grid(row=0, column=5, padx=5, pady=5)
 
         # binding keys
         def left_handler(event):
@@ -360,17 +362,8 @@ class MainScreen(object):
         """
         phase = np.zeros(slm_size)
         for ind, phase_types in enumerate(self.phase_refs):
-            # Check if phase array needs to be resized
-            if self.vars[ind].get() == 1 and phase_types.phase().shape != (1200, 1920):
-                print('oui')
-                new_shape = (1200, 1920)
-                new_phase = np.zeros(new_shape)
-                start_x = (new_shape[0] - phase_types.phase().shape[0]) // 2
-                start_y = (new_shape[1] - phase_types.phase().shape[1]) // 2
-                new_phase[start_x:start_x + phase_types.phase().shape[0],
-                start_y:start_y + phase_types.phase().shape[1]] = phase_types.phase()
-                phase += new_phase
-            elif self.vars[ind].get() == 1:
+            if self.vars[ind].get() == 1:
+                print(phase_types)
                 phase += phase_types.phase()
         return phase
 
@@ -713,6 +706,14 @@ class MainScreen(object):
         if self.feedback_win is not None:
             self.feedback_win.on_close()
         self.main_win.destroy()
+
+    def delete_last_settings_file(self):
+        """
+        Delete the last_settings.txt file if it exists.
+        """
+        file_path = os.path.join(os.getcwd(), 'last_settings.txt')
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
 
 root = tk.Tk()

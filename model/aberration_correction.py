@@ -10,6 +10,8 @@ from matplotlib import image
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+import os
+
 focal_length = 250e-3  # mm
 delta_xy = 3.45e-6
 
@@ -92,6 +94,7 @@ class AberrationWindow(object):
     close_aberration_window(self):
         Closes the aberration window.
     """
+
     def __init__(self, parent):
         """
         Initialisation of the AberrationWindow class
@@ -193,7 +196,8 @@ class AberrationWindow(object):
         self.tk_widget_fig_final.grid(row=1, columnspan=2, sticky='nsew', pady=5)
 
         # Main layout
-        btn_ok = tk.Button(self.win, text='OK', command=self.take_pattern)
+        btn_ok = tk.Button(self.win, text='Apply', command=self.take_pattern)
+        btn_save = tk.Button(self.win, text='Save', command=self.save_pattern)
         btn_close = tk.Button(self.win, text='Close', command=self.close_aberration_window)
         frm_set.grid(row=0, columnspan=2, sticky='nw', padx=5, pady=5)
         frm_load_initial_image.grid(row=1, column=0, sticky='nw', padx=5, pady=5)
@@ -201,7 +205,8 @@ class AberrationWindow(object):
         self.frm_initialisation_display.grid(row=2, columnspan=2, sticky='nw', padx=5, pady=5)
         self.frm_calc.grid(row=3, columnspan=2, sticky='nw', padx=5, pady=5)
         btn_ok.grid(row=4, column=0, padx=5, pady=5)
-        btn_close.grid(row=4, column=1, padx=5, pady=5)
+        btn_save.grid(row=4, column=1, padx=5, pady=5)
+        btn_close.grid(row=4, column=2, padx=5, pady=5)
 
     def open_file_initial_image(self):
         """
@@ -269,6 +274,23 @@ class AberrationWindow(object):
 
         self.parent.img = self.pattern / (2 * np.pi) * bit_depth
         print('Ready to publish')
+
+    def save_pattern(self):
+        """
+        Save the just-calculated correction wavefront into a file.
+        """
+        user_input = tk.simpledialog.askstring(title="SLM Control - Name of the correction phase", prompt="Name of "
+                                                                                                          "the file ?:")
+        cwd = os.getcwd()
+        filepath = cwd + '\\SLM_Aberration_correction_files'
+        if not os.path.exists(filepath):
+            os.mkdir(filepath)
+        filepath += '\\' + user_input
+        filepath += '.csv'
+
+        np.savetxt(filepath, self.pattern / (2 * np.pi) * bit_depth, delimiter=',')
+        self.parent.lbl_file['text'] = filepath
+        print(f'Saved as {filepath}')
 
     def close_aberration_window(self):
         """
