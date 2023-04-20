@@ -13,7 +13,7 @@ import tkinter.messagebox as tkMbox
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 
 import santec_driver._slm_py as slm
-from model import phase_settings, feedbacker
+from model import phase_settings, feedbacker, mcp
 from model.settings import slm_size, bit_depth
 from views import preview_window, questionbox, camera_control
 
@@ -87,6 +87,7 @@ class MainScreen(object):
         self.prev_win = None
         self.feedback_win = None
         self.camera_win = None
+        self.mcp_win = None
         self.phase_map = np.zeros(slm_size)
 
         # creating frames
@@ -105,13 +106,14 @@ class MainScreen(object):
 
         # Creating buttons
         but_camera = tk.Button(frm_bot, text='Camera', command=self.open_camera)
+        but_mcp = tk.Button(frm_bot, text='MCP', command=self.open_mcp)
         but_fbck = tk.Button(frm_bot, text='Feedbacker', command=self.open_feedback)
         but_prev = tk.Button(frm_bot, text='Preview', command=self.open_prev)
         but_pub = tk.Button(frm_bot, text='Publish', command=self.open_pub)
         but_exit = tk.Button(frm_bot, text='EXIT', command=self.exit_prog)
         but_save = tk.Button(frm_topb, text='Save Settings', command=self.save)
         but_load = tk.Button(frm_topb, text='Load Settings', command=self.load)
-        but_clean_settings = tk.Button(frm_bot, text='Clean settings file', command=self.delete_last_settings_file)
+        # but_clean_settings = tk.Button(frm_bot, text='Clean settings file', command=self.delete_last_settings_file)
 
         # Creating entry
         self.ent_scr = tk.Spinbox(frm_top, width=5, from_=1, to=8)
@@ -143,12 +145,14 @@ class MainScreen(object):
         self.ax1.axes.yaxis.set_visible(False)
 
         # Setting up bot frame
-        but_camera.grid(row=0, column=0, padx=5, pady=5)
-        but_fbck.grid(row=0, column=1, padx=5, pady=5)
-        but_prev.grid(row=0, column=2, padx=5, pady=5)
-        but_pub.grid(row=0, column=3, padx=5, pady=5)
-        but_exit.grid(row=0, column=4, padx=5, pady=5)
-        but_clean_settings.grid(row=0, column=5, padx=5, pady=5)
+        but_mcp.grid(row=0, column=0, padx=5, pady=5)
+        but_camera.grid(row=0, column=1, padx=5, pady=5)
+        but_fbck.grid(row=0, column=2, padx=5, pady=5)
+        but_prev.grid(row=0, column=3, padx=5, pady=5)
+        but_pub.grid(row=0, column=4, padx=5, pady=5)
+        but_exit.grid(row=0, column=5, padx=5, pady=5)
+
+        # but_clean_settings.grid(row=0, column=5, padx=5, pady=5)
 
         # binding keys
         def left_handler(event):
@@ -276,6 +280,13 @@ class MainScreen(object):
         slm.SLM_Disp_Data(int(self.ent_scr.get()), self.phase_map, slm_size[1], slm_size[0])
 
         self.update_phase_plot(self.phase_map)
+
+    def open_mcp(self):
+        """
+        Open the MCP window.
+        """
+        self.mcp_win = mcp.Mcp(self)
+        print("halleluja")
 
     def do_scan(self):
         """
@@ -429,6 +440,7 @@ class MainScreen(object):
                     self.vars[num].set(dics[phase.name_()]['Enabled'])
                 self.ent_scr.delete(0, tk.END)
                 self.ent_scr.insert(0, dics['screen_pos'])
+                print("File loaded successfully")
             except ValueError:
                 print('Not able to load settings')
         except FileNotFoundError:
@@ -691,7 +703,7 @@ class MainScreen(object):
             The new phase values to update.
         """
         self.ax1.clear()
-        self.ax1.imshow(phase % (bit_depth+1), cmap='RdBu',
+        self.ax1.imshow(phase % (bit_depth + 1), cmap='RdBu',
                         interpolation='None')
         self.img1.draw()
 
