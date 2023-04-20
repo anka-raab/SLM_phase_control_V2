@@ -31,70 +31,7 @@ extent_img = [x_img[0] * 1e3, x_img[-1] * 1e3, y_img[0] * 1e3, y_img[-1] * 1e3]
 class AberrationWindow(object):
     """
     A class for creating an aberration window that allows for aberration correction using an SLM phase control system.
-
-    Attributes
-    ----------
-    parent : object
-        The parent object.
-    win : tkinter.Toplevel
-        The tkinter Toplevel widget for the window.
-    vcmd : tkinter.StringVar
-        The tkinter StringVar object for validation.
-    strvar_wavelength : tkinter.StringVar
-        The tkinter StringVar object for wavelength.
-    ent_wavelength : tkinter.Entry
-        The tkinter Entry widget for wavelength input.
-    strvar_f : tkinter.StringVar
-        The tkinter StringVar object for focal length.
-    ent_f : tkinter.Entry
-        The tkinter Entry widget for focal length input.
-    strvar_it : tkinter.StringVar
-        The tkinter StringVar object for convergence criterion.
-    ent_it : tkinter.Entry
-        The tkinter Entry widget for convergence criterion input.
-    lbl_initial_image_file : tkinter.Label
-        The tkinter Label widget for the initial image file.
-    lbl_target_image_file : tkinter.Label
-        The tkinter Label widget for the target image file.
-    tk_widget_fig_initial : matplotlib.backends.backend_tkagg.FigureCanvasTkAgg
-        The tkinter canvas widget for the initialisation figure.
-    ax1_initialisation : matplotlib.axes._subplots.AxesSubplot
-        The matplotlib axes for the initialisation figure.
-    ax2_initialisation : matplotlib.axes._subplots.AxesSubplot
-        The matplotlib axes for the initialisation figure.
-    fig_initialisation : matplotlib.figure.Figure
-        The matplotlib figure for the initialisation figure.
-    btn_process : tkinter.Button
-        The tkinter button for image processing.
-    ax1_final : matplotlib.axes._subplots.AxesSubplot
-        The matplotlib axes for the final figure.
-    ax2_final : matplotlib.axes._subplots.AxesSubplot
-        The matplotlib axes for the final figure.
-    ax3_final : matplotlib.axes._subplots.AxesSubplot
-        The matplotlib axes for the final figure.
-    ax4_final : matplotlib.axes._subplots.AxesSubplot
-        The matplotlib axes for the final figure.
-    fig_final : matplotlib.figure.Figure
-        The matplotlib figure for the final figure.
-    btn_gen : tkinter.Button
-        The tkinter button for generating the phase pattern.
-
-    Methods
-    -------
-    __init__(self, parent):
-        Initializes the AberrationWindow class.
-    open_file_initial_image(self):
-        Opens a file dialog for selecting the initial image file.
-    open_file_target_image(self):
-        Opens a file dialog for selecting the target image file.
-    image_processing(self):
-        Processes the initial and target images and displays them in the initialisation figure.
-    calculate_phase(self):
-        Calculates the phase pattern for the SLM phase control system.
-    close_aberration_window(self):
-        Closes the aberration window.
     """
-
     def __init__(self, parent):
         """
         Initialisation of the AberrationWindow class

@@ -65,7 +65,7 @@ class SLMControl(object):
         lbl_screen = tk.Label(frm_top, text='SLM display number:')
 
         # Creating buttons
-        but_camera = tk.Button(frm_bot, text='Camera', command=self.open_camera)
+        but_camera = tk.Button(frm_bot, text='Beam profile', command=self.open_camera)
         but_mcp = tk.Button(frm_bot, text='MCP', command=self.open_mcp)
         but_fbck = tk.Button(frm_bot, text='Feedbacker', command=self.open_feedback)
         but_prev = tk.Button(frm_bot, text='Preview', command=self.open_prev)
@@ -243,7 +243,7 @@ class SLMControl(object):
         -------
         None
         """
-        self.camera_win = camera_control.CameraControl(self, slm)
+        self.camera_win = camera_control.CameraControl(self)
 
     def open_prev(self):
         """
