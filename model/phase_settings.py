@@ -74,7 +74,6 @@ class BaseType(object):
         """
         # Check if filepath is provided
         if not filepath:
-            print('pas chargé')
             return  # Return None if filepath is not provided
 
         try:
@@ -84,20 +83,16 @@ class BaseType(object):
                     # If it is a csv file, load it using numpy loadtxt function
                     # Skip the first row (header) and read all columns except the first column
                     self.img = np.loadtxt(filepath, delimiter=',', skiprows=1, usecols=np.arange(1920) + 1)
-                    print('chargé1')
                 except:
                     # If there's an error in loading the csv file, try loading it without skipping the header row
                     self.img = np.loadtxt(filepath, delimiter=',')
-                    print('chargé2')
             else:
                 # If the file is not a csv file, load it using matplotlib imread function
                 self.img = mpimg.imread(filepath)
-                print('chargé3')
                 if len(self.img.shape) == 3:  # Check if the image has 3 dimensions (multicolor image)
                     # If the image has 3 dimensions, convert it to grayscale by summing the values across the color
                     # channels
                     self.img = self.img.sum(axis=2)
-                    print('chargé4')
         except:
             # If there's an error in loading the file, print an error message
             print('File "' + filepath + '" not found')

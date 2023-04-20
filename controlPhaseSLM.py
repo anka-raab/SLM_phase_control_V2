@@ -20,62 +20,22 @@ from views import preview_window, questionbox, camera_control
 matplotlib.use("TkAgg")
 
 
-class MainScreen(object):
+class SLMControl(object):
     """
-    Class for controlling the SLM Phase Control main screen.
-
-    Attributes:
-    -----------
-    main_win : tk.Tk
-        The main tkinter window.
-    pub_win : None or tkinter.Toplevel
-        The window for publishing.
-    prev_win : None or tkinter.Toplevel
-        The window for previewing.
-    feedback_win : None or tkinter.Toplevel
-        The window for feedback.
-    phase_map : numpy.ndarray
-        A numpy array containing the calculated phase.
-
-    Methods:
-    --------
-    __init__(self, parent):
-        Initializes the MainScreen object with its attributes.
-    exit_prog(self):
-        Closes the program.
-    setup_box(self, parent):
-        Sets up the checkboxes.
-    open_feedback(self):
-        Opens the feedback window.
-    open_prev(self):
-        Opens the preview window.
-    open_pub(self):
-        Opens the publish window.
-    save(self):
-        Saves the current settings.
-    load(self, filename):
-        Loads the settings from a file.
-    scan_options(self):
-        Sets up the scanning options.
-    left_arrow(self):
-        Handles the left arrow key event.
-    right_arrow(self):
-        Handles the right arrow key event.
-    up_arrow(self):
-        Handles the up arrow key event.
-    down_arrow(self):
-        Handles the down arrow key event.
-    escape_key(self):
-        Handles the escape key event.
+    A class for controlling the SLM for displaying phase maps.
     """
-
     def __init__(self, parent):
-        """Initializes the MainScreen object with its attributes.
+        """
+        Initializes the MainScreen object with its attributes.
 
-        Parameters:
-        -----------
-        parent : tk.Tk
+        Parameters
+        ----------
+        parent : tkinter.Tk
             The tkinter parent window.
+
+        Returns
+        -------
+        None
         """
         self.main_win = parent
         self.main_win.protocol("WM_DELETE_WINDOW", self.exit_prog)
@@ -128,7 +88,7 @@ class MainScreen(object):
         # Setting up top frame
         lbl_screen.grid(row=0, column=0, sticky='e', padx=10, pady=10)
         self.ent_scr.grid(row=0, column=1, sticky='w', padx=(0, 10))
-        self.setup_box(frm_top)  # sets up the checkboxes separately
+        self.setup_box(frm_top)
         frm_topb.grid(row=1, column=1, sticky='nsew')
         but_save.grid(row=0, padx=5, pady=5)
         but_load.grid(row=1, padx=5)
@@ -151,16 +111,21 @@ class MainScreen(object):
         but_prev.grid(row=0, column=3, padx=5, pady=5)
         but_pub.grid(row=0, column=4, padx=5, pady=5)
         but_exit.grid(row=0, column=5, padx=5, pady=5)
-
-        # but_clean_settings.grid(row=0, column=5, padx=5, pady=5)
+        # but_clean_settings.grid(row=0, column=6, padx=5, pady=5)
 
         # binding keys
         def left_handler(event):
             """
             Handle the 'a' key press event.
 
-            Parameters:
-                event (Event): The event object associated with the key press.
+            Parameters
+            ----------
+            event : tkinter.Event
+                The event object associated with the key press.
+
+            Returns
+            -------
+            None
             """
             return self.left_arrow()
 
@@ -170,8 +135,14 @@ class MainScreen(object):
             """
             Handle the 'd' key press event.
 
-            Parameters:
-                event (Event): The event object associated with the key press.
+            Parameters
+            ----------
+            event : tkinter.Event
+                The event object associated with the key press.
+
+            Returns
+            -------
+            None
             """
             return self.right_arrow()
 
@@ -181,8 +152,14 @@ class MainScreen(object):
             """
             Handle the 'w' key press event.
 
-            Parameters:
-                event (Event): The event object associated with the key press.
+            Parameters
+            ----------
+            event : tkinter.Event
+                The event object associated with the key press.
+
+            Returns
+            -------
+            None
             """
             return self.up_arrow()
 
@@ -192,8 +169,14 @@ class MainScreen(object):
             """
             Handle the 's' key press event.
 
-            Parameters:
-                event (Event): The event object associated with the key press.
+            Parameters
+            ----------
+            event : tkinter.Event
+                The event object associated with the key press.
+
+            Returns
+            -------
+            None
             """
             return self.down_arrow()
 
@@ -203,8 +186,14 @@ class MainScreen(object):
             """
             Handle the 'Escape' key press event.
 
-            Parameters:
-                event (Event): The event object associated with the key press.
+            Parameters
+            ----------
+            event : tkinter.Event
+                The event object associated with the key press.
+
+            Returns
+            -------
+            None
             """
             return self.escape_key()
 
@@ -219,6 +208,10 @@ class MainScreen(object):
 
         If the feedback window is not already open, a question box will pop up asking the user to choose a feedback
         method between using a camera with spatial fringes or a spectrometer with spectral fringes.
+
+        Returns
+        -------
+        None
         """
         if self.feedback_win is None:
             q_str1 = 'The feedbacker.py needs to look at fringes between the two beams.'
@@ -231,24 +224,37 @@ class MainScreen(object):
         """
         Open the feedback window using the specified feedback method.
 
-        Parameters:
-            answer (str): The feedback method to use - 'Open Camera' for spatial fringes
-            or 'Open Spectrometer' for spectral fringes.
+        Parameters
+        ----------
+        answer : str
+            The feedback method to use - 'Open Camera' for spatial fringes or 'Open Spectrometer' for spectral fringes.
+
+        Returns
+        -------
+        None
         """
         self.feedback_win = feedbacker.Feedbacker(self, slm, answer)
 
     def open_camera(self):
         """
-        Open the camera window to look at the beam profile
+        Opens the camera window to look at the beam profile.
+
+        Returns
+        -------
+        None
         """
         self.camera_win = camera_control.CameraControl(self, slm)
 
     def open_prev(self):
         """
-        Open the preview window, or update it if it is already open.
+        Opens the preview window or updates it if it is already open.
 
         If the preview window is not open, it will be created. Otherwise, the update_plots() method of the existing
         preview window will be called to update the plots.
+
+        Returns
+        -------
+        None
         """
         if self.prev_win is not None:
             self.prev_win.update_plots()
@@ -260,6 +266,10 @@ class MainScreen(object):
         Handle the event of the preview window being closed.
 
         When the preview window is closed, this method will be called to reset the prev_win attribute to None.
+
+        Returns
+        -------
+        None
         """
         print('prev closed')
         self.prev_win = None
@@ -271,6 +281,10 @@ class MainScreen(object):
         This method will first disable the entry screen, then generate a phase map using the current phase values
         and bit depth, and display it on the SLM using the SLM_Disp_Open() and SLM_Disp_Data() methods. Finally,
         the update_phase_plot() method is called to update the phase plot.
+
+        Returns
+        -------
+        None
         """
         self.ent_scr.config(state='disabled')
         self.phase_map = self.get_phase()
@@ -284,6 +298,10 @@ class MainScreen(object):
     def open_mcp(self):
         """
         Open the MCP window.
+
+        Returns
+        -------
+        None
         """
         self.mcp_win = mcp.Mcp(self)
         print("halleluja")
@@ -294,6 +312,10 @@ class MainScreen(object):
 
         This method loads each file in the file list, opens the public display window, and waits for the specified delay
         between files. The scan can be stopped by setting the var_stop_scan attribute to 1.
+
+        Returns
+        -------
+        None
         """
         if self.strvar_delay.get() == '':
             self.strvar_delay.set('1')
@@ -321,6 +343,10 @@ class MainScreen(object):
 
         This method updates the lbl_time label to display the remaining time until the next file is loaded. It is called
         by the do_scan() method.
+
+        Returns
+        -------
+        None
         """
         self.lbl_time['text'] = int(self.lbl_time['text']) - 1
         if int(self.lbl_time['text']):
@@ -331,6 +357,10 @@ class MainScreen(object):
         Handle the event of the public display window being closed.
 
         This method re-enables the entry screen and closes the public display on the SLM.
+
+        Returns
+        -------
+        None
         """
         self.ent_scr.config(state='normal')
         slm.SLM_Disp_Close(int(self.ent_scr.get()))
@@ -449,6 +479,10 @@ class MainScreen(object):
     def scan_options(self):
         """
         Creates and sets up widgets for the scan options.
+
+        Returns
+        -------
+        None
         """
         self.so_frm = tk.LabelFrame(self.frm_side, text='Scan options')
         self.so_frm.grid(row=0, sticky='nsew')
@@ -561,6 +595,10 @@ class MainScreen(object):
     def create_loadingfile(self):
         """
         Create a loading file for phase scan files.
+
+        Returns
+        -------
+        None
         """
         if self.strvar_val.get() != '':
             strval = self.strvar_val.get()
@@ -611,6 +649,10 @@ class MainScreen(object):
     def open_loadingfile(self):
         """
         Open a loading file for phase scan files.
+
+        Returns
+        -------
+        None
         """
         filepath = askopenfilename(
             filetypes=[('Text Files', '*.txt'), ('All Files', '*.*')]
@@ -623,6 +665,11 @@ class MainScreen(object):
     def load_filelist(self):
         """
         Load a filelist for phase scan files.
+
+        Returns
+        -------
+        list
+            A list of file paths in the filelist.
         """
         filelistpath = self.lbl_file['text']
         with open(filelistpath, 'r') as f:
@@ -633,6 +680,10 @@ class MainScreen(object):
     def stop_scan(self):
         """
         Stop the scan by setting a variable to 1.
+
+        Returns
+        -------
+        None
         """
         self.var_stop_scan.set(1)
         return
@@ -640,6 +691,10 @@ class MainScreen(object):
     def left_arrow(self):
         """
         Move the selected phase to the left.
+
+        Returns
+        -------
+        None
         """
         if self.vars[2].get() == 1:
             self.phase_refs[2].left_()
@@ -649,6 +704,10 @@ class MainScreen(object):
     def right_arrow(self):
         """
         Move the selected phase to the right.
+
+        Returns
+        -------
+        None
         """
         if self.vars[2].get() == 1:
             self.phase_refs[2].right_()
@@ -658,6 +717,10 @@ class MainScreen(object):
     def up_arrow(self):
         """
         Move the selected phase up.
+
+        Returns
+        -------
+        None
         """
         if self.vars[2].get() == 1:
             self.phase_refs[2].up_()
@@ -667,6 +730,10 @@ class MainScreen(object):
     def down_arrow(self):
         """
         Move the selected phase down.
+
+        Returns
+        -------
+        None
         """
         print('s pressed')
         if self.vars[2].get() == 1:
@@ -680,6 +747,10 @@ class MainScreen(object):
 
         If the publication window is open, it prompts the user to close the window.
         Otherwise, it clears the ax1 and draws the img1.
+
+        Returns
+        -------
+        None
         """
         print('esc pressed')
         if self.pub_win is not None:
@@ -695,12 +766,17 @@ class MainScreen(object):
         """
         Update the phase plot of the SLM.
 
-        Clear the ax1, update the phase, and draw the img1.
+        This function clears the ax1, updates the phase with new values, and draws
+        the img1.
 
         Parameters
         ----------
         phase : np.ndarray
             The new phase values to update.
+
+        Returns
+        -------
+        None
         """
         self.ax1.clear()
         self.ax1.imshow(phase % (bit_depth + 1), cmap='RdBu',
@@ -711,7 +787,12 @@ class MainScreen(object):
         """
         Exit the program.
 
-        Save the last settings, close the publication window, and destroy the main window.
+        This function saves the last settings, closes the publication window,
+        and destroys the main window.
+
+        Returns
+        -------
+        None
         """
         self.save('./last_settings.txt')
         self.pub_win_closed()
@@ -719,9 +800,14 @@ class MainScreen(object):
             self.feedback_win.on_close()
         self.main_win.destroy()
 
+    # Diagnostics
     def delete_last_settings_file(self):
         """
-        Delete the last_settings.txt file if it exists.
+        Deletes the last_settings.txt file if it exists.
+
+        Returns
+        -------
+        None
         """
         file_path = os.path.join(os.getcwd(), 'last_settings.txt')
         if os.path.exists(file_path):
@@ -729,7 +815,5 @@ class MainScreen(object):
 
 
 root = tk.Tk()
-
-main = MainScreen(root)
-
+main = SLMControl(root)
 root.mainloop()

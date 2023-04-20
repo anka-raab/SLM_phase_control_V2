@@ -7,52 +7,22 @@ import tkinter as tk
 
 matplotlib.use("TkAgg")
 
-print('preview_window in')
-
 
 class PrevScreen(object):
     """
     A class to create a preview window that displays an initial intensity, the phase that the user
     want to apply and the resulting intensity profile in the focus.
-
-    ...
-
-    Attributes
-    ----------
-    parent : object
-        The parent object that creates the preview window.
-    win : tkinter.Toplevel
-        The top-level window object that displays the plots.
-    fig : matplotlib.figure.Figure
-        The figure object that contains the subplots.
-    ax1 : matplotlib.axes.Axes
-        The subplot object for the input intensity plot.
-    ax2 : matplotlib.axes.Axes
-        The subplot object for the phase plot.
-    ax3 : matplotlib.axes.Axes
-        The subplot object for the intensity profile in the focus plot.
-    ax4 : matplotlib.axes.Axes
-        The subplot object for the intensity plot of the central slice of the
-        intensity profile in the focus signal.
-    img1 : matplotlib.backends.backend_tkagg.FigureCanvasTkAgg
-        The Tkinter-compatible canvas object that displays the figure.
-    tk_widget_fig : tkinter.Widget
-        The Tkinter widget object that contains the canvas.
-
-    Methods
-    -------
-    update_plots():
-        Updates the data and plots of the figure.
-    close_prev():
-        Closes the preview window.
     """
-
     def __init__(self, parent):
         """
         Parameters
         ----------
         parent : object
             The parent object that this window belongs to.
+
+        Returns
+        -------
+        None
         """
         # Save the parent object
         self.parent = parent
@@ -82,11 +52,9 @@ class PrevScreen(object):
         """
         Update the displayed plots with the latest calculated intensity and phase values.
 
-        This method calculates the phase based on the current phase values obtained from the parent object.
-        It then applies the input phase to the input intensity and computes the Fourier transform to obtain
-        the in-focus intensity. The resulting intensity and phase plots are then displayed in the first and
-        second plots, respectively, while the in-focus intensity is displayed in the third plot.
-        Finally, a cress-section view of the in-focus intensity is plotted in the fourth plot.
+        Returns:
+        -------
+        None
         """
         # Grid creation
         x = np.linspace(-40, 40, slm_size[1])
@@ -116,7 +84,7 @@ class PrevScreen(object):
         self.ax1.set_title('Before propagation')
         # 2
         self.ax2.clear()
-        self.ax2.imshow(np.angle(np.exp(1j * input_phase)), cmap='twilight_shifted', interpolation='None')
+        self.ax2.imshow(np.angle(np.exp(1j * input_phase)), cmap='RdBu', interpolation='None')
         self.ax2.set_title('Phase applied')
         # 3
         self.ax3.clear()
@@ -132,6 +100,12 @@ class PrevScreen(object):
     def close_prev(self):
         """
         Close the previous window and notify the parent object.
+
+        Returns:
+        -------
+        None
+            This method only closes the window and notifies the parent object.
         """
         self.win.destroy()
         self.parent.prev_win_closed()
+
