@@ -1,10 +1,12 @@
 import tkinter as tk
+from tkinter import ttk
 import gxipy as gx
 from PIL import Image, ImageTk
 import time
 import threading
 import numpy as np
 import os
+
 
 class CameraControl(object):
     def __init__(self, parent):
@@ -17,37 +19,37 @@ class CameraControl(object):
         self.win.title(title)
         self.win.protocol("WM_DELETE_WINDOW", self.on_close)
 
-        frm_bot = tk.Frame(self.win)
-        frm_mid = tk.Frame(self.win)
+        frm_bot = ttk.Frame(self.win)
+        frm_mid = ttk.Frame(self.win)
 
-        frm_cam = tk.Frame(self.win)
-        frm_cam_but = tk.Frame(frm_cam)
-        frm_cam_but_set = tk.Frame(frm_cam_but)
+        frm_cam = ttk.Frame(self.win)
+        frm_cam_but = ttk.Frame(frm_cam)
+        frm_cam_but_set = ttk.Frame(frm_cam_but)
 
         vcmd = (self.win.register(self.parent.callback))
 
-        but_exit = tk.Button(frm_bot, text='EXIT', command=self.on_close)
-        but_cam_img = tk.Button(frm_cam_but, text='Initialize', command=self.cam_img)
-        but_cam_save = tk.Button(frm_cam_but, text='Save beam profile', command=self.cam_save)
+        but_exit = ttk.Button(frm_bot, text='EXIT', command=self.on_close)
+        but_cam_img = ttk.Button(frm_cam_but, text='Initialize', command=self.cam_img)
+        but_cam_save = ttk.Button(frm_cam_but, text='Save beam profile', command=self.cam_save)
 
-        lbl_cam_ind = tk.Label(frm_cam_but_set, text='Camera index:')
+        lbl_cam_ind = ttk.Label(frm_cam_but_set, text='Camera index:')
         self.strvar_cam_ind = tk.StringVar(self.win, '2')
-        self.ent_cam_ind = tk.Entry(frm_cam_but_set, width=11, validate='all', validatecommand=(vcmd, '%d', '%P', '%S'),
+        self.ent_cam_ind = ttk.Entry(frm_cam_but_set, width=11, validate='all', validatecommand=(vcmd, '%d', '%P', '%S'),
                                     textvariable=self.strvar_cam_ind)
 
-        lbl_cam_exp = tk.Label(frm_cam_but_set, text='Camera exposure (µs):')
+        lbl_cam_exp = ttk.Label(frm_cam_but_set, text='Camera exposure (µs):')
         self.strvar_cam_exp = tk.StringVar(self.win, '1000')
-        self.ent_cam_exp = tk.Entry(frm_cam_but_set, width=11, validate='all', validatecommand=(vcmd, '%d', '%P', '%S'),
+        self.ent_cam_exp = ttk.Entry(frm_cam_but_set, width=11, validate='all', validatecommand=(vcmd, '%d', '%P', '%S'),
                                     textvariable=self.strvar_cam_exp)
 
-        lbl_cam_gain = tk.Label(frm_cam_but_set, text='Camera gain (0-24):')
+        lbl_cam_gain = ttk.Label(frm_cam_but_set, text='Camera gain (0-24):')
         self.strvar_cam_gain = tk.StringVar(self.win, '20')
-        self.ent_cam_gain = tk.Entry(frm_cam_but_set, width=11, validate='all', validatecommand=(vcmd, '%d', '%P', '%S')
+        self.ent_cam_gain = ttk.Entry(frm_cam_but_set, width=11, validate='all', validatecommand=(vcmd, '%d', '%P', '%S')
                                      , textvariable=self.strvar_cam_gain)
 
-        lbl_cam_time = tk.Label(frm_cam_but_set, text='Acquisition "time" (1-inf):')
+        lbl_cam_time = ttk.Label(frm_cam_but_set, text='Acquisition "time" (1-inf):')
         self.strvar_cam_time = tk.StringVar(self.win, '1000')
-        self.ent_cam_time = tk.Entry(frm_cam_but_set, width=11, validate='all', validatecommand=(vcmd, '%d', '%P', '%S')
+        self.ent_cam_time = ttk.Entry(frm_cam_but_set, width=11, validate='all', validatecommand=(vcmd, '%d', '%P', '%S')
                                      , textvariable=self.strvar_cam_time)
 
         frm_cam.grid(row=0, column=0, sticky='nsew')
@@ -187,6 +189,5 @@ class CameraControl(object):
         self.render_thread.start()
 
     def on_close(self):
-        self.cam_on_close()
         self.win.destroy()
         self.parent.camera_win = None

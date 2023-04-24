@@ -8,7 +8,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 import tkinter as tk
 from tkinter import ttk
-import tkinter.font as tkFont
+
 import tkinter.messagebox as tkMbox
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 
@@ -20,7 +20,7 @@ from views import preview_window, questionbox, camera_control
 matplotlib.use("TkAgg")
 
 
-class SLMControl(object):
+class SLMControl:
     """
     A class for controlling the SLM for displaying phase maps.
     """
@@ -40,9 +40,8 @@ class SLMControl(object):
         self.main_win = parent
         self.main_win.protocol("WM_DELETE_WINDOW", self.exit_prog)
         self.main_win.title('SLM Phase Control')
+        self.style = ttk.Style()
 
-        self.main_win.columnconfigure(0, minsize=250, weight=1)
-        self.main_win.rowconfigure(2, minsize=100, weight=1)
         self.pub_win = None
         self.prev_win = None
         self.feedback_win = None
@@ -51,35 +50,30 @@ class SLMControl(object):
         self.phase_map = np.zeros(slm_size)
 
         # creating frames
-        frm_top = tk.Frame(self.main_win)
+        frm_top = ttk.Frame(self.main_win)
         self.frm_mid = ttk.Notebook(self.main_win)
-        frm_bot = tk.Frame(self.main_win)
-        frm_topb = tk.Frame(frm_top)
-        self.frm_side = tk.Frame(self.main_win)
+        frm_bot = ttk.Frame(self.main_win)
+        frm_topb = ttk.Frame(frm_top)
+        self.frm_side = ttk.Frame(self.main_win)
 
         # Creating labels
-        lbl_title = tk.Label(
-            self.main_win,
-            text='Control Phase',
-            font=tkFont.Font(family='Lucida Grande', size=20))
-        lbl_screen = tk.Label(frm_top, text='SLM display number:')
+        lbl_screen = ttk.Label(frm_top, text='SLM display number:')
 
         # Creating buttons
-        but_camera = tk.Button(frm_bot, text='Beam profile', command=self.open_camera)
-        but_mcp = tk.Button(frm_bot, text='MCP', command=self.open_mcp)
-        but_fbck = tk.Button(frm_bot, text='Feedbacker', command=self.open_feedback)
-        but_prev = tk.Button(frm_bot, text='Preview', command=self.open_prev)
-        but_pub = tk.Button(frm_bot, text='Publish', command=self.open_pub)
-        but_exit = tk.Button(frm_bot, text='EXIT', command=self.exit_prog)
-        but_save = tk.Button(frm_topb, text='Save Settings', command=self.save)
-        but_load = tk.Button(frm_topb, text='Load Settings', command=self.load)
+        but_camera = ttk.Button(frm_bot, text='Beam profile', command=self.open_camera)
+        but_mcp = ttk.Button(frm_bot, text='MCP', command=self.open_mcp)
+        but_fbck = ttk.Button(frm_bot, text='Feedbacker', command=self.open_feedback)
+        but_prev = ttk.Button(frm_bot, text='Preview', command=self.open_prev)
+        but_pub = ttk.Button(frm_bot, text='Publish', command=self.open_pub)
+        but_exit = ttk.Button(frm_bot, text='EXIT', command=self.exit_prog)
+        but_save = ttk.Button(frm_topb, text='Save Settings', command=self.save)
+        but_load = ttk.Button(frm_topb, text='Load Settings', command=self.load)
         # but_clean_settings = tk.Button(frm_bot, text='Clean settings file', command=self.delete_last_settings_file)
 
         # Creating entry
-        self.ent_scr = tk.Spinbox(frm_top, width=5, from_=1, to=8)
+        self.ent_scr = ttk.Spinbox(frm_top, width=5, from_=1, to=8)
 
         # Setting up general structure
-        lbl_title.grid(row=0, column=0, sticky='ew')
         frm_top.grid(row=2, column=0, sticky='ew')
         self.frm_mid.grid(row=1, column=0, sticky='nsew')
         frm_bot.grid(row=4, column=0)
@@ -95,14 +89,15 @@ class SLMControl(object):
 
         # Setting up scan and phase figure
         self.scan_options()
-        self.fig = Figure(figsize=(2, 1.5), dpi=130)
-        self.ax1 = self.fig.add_subplot(111)
-        self.img1 = FigureCanvasTkAgg(self.fig, frm_topb)
-        self.tk_widget_fig = self.img1.get_tk_widget()
+        self.fig = Figure(figsize=(3, 2.5), dpi=110)
+        self.ax = self.fig.add_subplot(111)
+
+        self.img = FigureCanvasTkAgg(self.fig, frm_topb)
+        self.tk_widget_fig = self.img.get_tk_widget()
         self.tk_widget_fig.grid(row=2, sticky='ew')
 
-        self.ax1.axes.xaxis.set_visible(False)
-        self.ax1.axes.yaxis.set_visible(False)
+        self.ax.axes.xaxis.set_visible(False)
+        self.ax.axes.yaxis.set_visible(False)
 
         # Setting up bot frame
         but_mcp.grid(row=0, column=0, padx=5, pady=5)
@@ -304,7 +299,6 @@ class SLMControl(object):
         None
         """
         self.mcp_win = mcp.Mcp(self)
-        print("halleluja")
 
     def do_scan(self):
         """
@@ -374,7 +368,7 @@ class SLMControl(object):
         frm_: tkinter.Frame
             The parent frame in which the label frame and check-buttons are to be placed.
         """
-        frm_box = tk.LabelFrame(frm_, text='Phases enabled')
+        frm_box = ttk.LabelFrame(frm_, text='Phases enabled')
         frm_box.grid(column=0)
         self.types = phase_settings.types  # reads in  different phase types
         self.vars = []  # init a list holding the variables from the boxes
@@ -387,7 +381,7 @@ class SLMControl(object):
             self.frm_mid.add(self.tabs[ind], text=typ)
             self.phase_refs.append(phase_settings.new_type(self.tabs[ind],
                                                            typ))
-            self.box_ = tk.Checkbutton(frm_box, text=typ,
+            self.box_ = ttk.Checkbutton(frm_box, text=typ,
                                        variable=self.vars[ind],
                                        onvalue=1, offvalue=0)
             self.box_.grid(row=ind, sticky='w')
@@ -484,21 +478,21 @@ class SLMControl(object):
         -------
         None
         """
-        self.so_frm = tk.LabelFrame(self.frm_side, text='Scan options')
+        self.so_frm = ttk.LabelFrame(self.frm_side, text='Scan options')
         self.so_frm.grid(row=0, sticky='nsew')
 
         # creating frames
-        frm_file = tk.Frame(self.so_frm)
+        frm_file = ttk.Frame(self.so_frm)
 
         # creating labels
-        lbl_scpar = tk.Label(self.so_frm, text='Scan parameter')
-        lbl_val = tk.Label(self.so_frm, text='Value (strt:stop:num)')
-        lbl_actf = tk.Label(frm_file, text='Active file:')
-        self.lbl_file = tk.Label(frm_file, text='', wraplength=230,
+        lbl_scpar = ttk.Label(self.so_frm, text='Scan parameter')
+        lbl_val = ttk.Label(self.so_frm, text='Value (strt:stop:num)')
+        lbl_actf = ttk.Label(frm_file, text='Active file:')
+        self.lbl_file = ttk.Label(frm_file, text='', wraplength=230,
                                  justify='left', foreground='gray')
-        lbl_delay = tk.Label(
+        lbl_delay = ttk.Label(
             self.so_frm, text='Delay between each phase [s]:')
-        self.lbl_time = tk.Label(self.so_frm, text='0')
+        self.lbl_time = ttk.Label(self.so_frm, text='0')
 
         # creating entries
         self.cbx_scpar = ttk.Combobox(
@@ -506,24 +500,24 @@ class SLMControl(object):
         self.cbx_scpar.current(0)
         vcmd = (self.frm_side.register(self.callback))
         self.strvar_val = tk.StringVar()
-        ent_val = tk.Entry(self.so_frm, width=10, validate='all',
+        ent_val = ttk.Entry(self.so_frm, width=10, validate='all',
                            validatecommand=(vcmd, '%d', '%P', '%S'),
                            textvariable=self.strvar_val)
         self.strvar_delay = tk.StringVar()
-        ent_delay = tk.Entry(self.so_frm, width=5, validate='all',
+        ent_delay = ttk.Entry(self.so_frm, width=5, validate='all',
                              validatecommand=(vcmd, '%d', '%P', '%S'),
                              textvariable=self.strvar_delay)
 
         # creating buttons
-        self.but_crt = tk.Button(
+        self.but_crt = ttk.Button(
             self.so_frm, text='Create loading file',
             command=self.create_loadingfile)
-        but_openload = tk.Button(
+        but_openload = ttk.Button(
             self.so_frm, text='Open existing loading file',
             command=self.open_loadingfile)
-        self.but_scan = tk.Button(
+        self.but_scan = ttk.Button(
             self.so_frm, text='Scan', command=self.do_scan)
-        but_stop_scan = tk.Button(
+        but_stop_scan = ttk.Button(
             self.so_frm, text='Stop scan', command=self.stop_scan)
         self.var_stop_scan = tk.IntVar(value=0)
 
@@ -759,8 +753,8 @@ class SLMControl(object):
             result = tkMbox.askquestion('Close Publication Window', q_str)
             if result == 'yes':
                 self.pub_win_closed()
-                self.ax1.clear()
-                self.img1.draw()
+                self.ax.clear()
+                self.img.draw()
 
     def update_phase_plot(self, phase):
         """
@@ -778,10 +772,10 @@ class SLMControl(object):
         -------
         None
         """
-        self.ax1.clear()
-        self.ax1.imshow(phase % (bit_depth + 1), cmap='RdBu',
+        self.ax.clear()
+        self.ax.imshow(phase % (bit_depth + 1), cmap='RdBu',
                         interpolation='None')
-        self.img1.draw()
+        self.img.draw()
 
     def exit_prog(self):
         """

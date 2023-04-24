@@ -3,6 +3,7 @@ from model.functions import initial_process, wgs_algo
 
 import numpy as np
 import tkinter as tk
+from tkinter import ttk
 from scipy.interpolate import interp2d
 
 from matplotlib import pyplot as plt
@@ -43,21 +44,21 @@ class AberrationWindow(object):
         self.vcmd = (parent.parent.register(parent.callback))
 
         # Settings frame
-        frm_set = tk.LabelFrame(self.win, text='Settings')
+        frm_set = ttk.LabelFrame(self.win, text='Settings')
 
-        lbl_wavelength = tk.Label(frm_set, text='Wavelength:')
+        lbl_wavelength = ttk.Label(frm_set, text='Wavelength:')
         self.strvar_wavelength = tk.StringVar(value=wavelength)
-        self.ent_wavelength = tk.Entry(frm_set, width=10, validate='all', validatecommand=(self.vcmd, '%d', '%P', '%S'),
+        self.ent_wavelength = ttk.Entry(frm_set, width=10, validate='all', validatecommand=(self.vcmd, '%d', '%P', '%S'),
                                        textvariable=self.strvar_wavelength)
 
-        lbl_f = tk.Label(frm_set, text='focal length [mm]:')
+        lbl_f = ttk.Label(frm_set, text='focal length [mm]:')
         self.strvar_f = tk.StringVar(value=focal_length * 1e3)
-        self.ent_f = tk.Entry(frm_set, width=10, validate='all', validatecommand=(self.vcmd, '%d', '%P', '%S'),
+        self.ent_f = ttk.Entry(frm_set, width=10, validate='all', validatecommand=(self.vcmd, '%d', '%P', '%S'),
                               textvariable=self.strvar_f)
 
-        lbl_it = tk.Label(frm_set, text='Convergence criterion:')
+        lbl_it = ttk.Label(frm_set, text='Convergence criterion:')
         self.strvar_it = tk.StringVar(value=0.9999999)
-        self.ent_it = tk.Entry(frm_set, width=10, validate='all', validatecommand=(self.vcmd, '%d', '%P', '%S'),
+        self.ent_it = ttk.Entry(frm_set, width=10, validate='all', validatecommand=(self.vcmd, '%d', '%P', '%S'),
                                textvariable=self.strvar_it)
 
         lbl_wavelength.grid(row=0, column=0, sticky='e')
@@ -70,32 +71,32 @@ class AberrationWindow(object):
         self.ent_it.grid(row=3, column=1, sticky='w')
 
         # Load initial image frame
-        frm_load_initial_image = tk.LabelFrame(self.win, width=300, text='Initial image')
-        btn_open_initial_image = tk.Button(frm_load_initial_image, text='Load initial image',
+        frm_load_initial_image = ttk.LabelFrame(self.win, width=300, text='Initial image')
+        btn_open_initial_image = ttk.Button(frm_load_initial_image, text='Load initial image',
                                            command=self.open_file_initial_image)
-        lbl_act_initial_image_file = tk.Label(frm_load_initial_image, text='File containing the initial image :',
+        lbl_act_initial_image_file = ttk.Label(frm_load_initial_image, text='File containing the initial image :',
                                               justify='left')
-        self.lbl_initial_image_file = tk.Label(frm_load_initial_image, text='', wraplength=200, justify='left',
+        self.lbl_initial_image_file = ttk.Label(frm_load_initial_image, text='', wraplength=200, justify='left',
                                                foreground='gray')
         btn_open_initial_image.grid(row=0)
         lbl_act_initial_image_file.grid(row=1)
         self.lbl_initial_image_file.grid(row=2)
 
         # Load target image frame
-        frm_load_target_image = tk.LabelFrame(self.win, width=300, text='Target image')
-        btn_open_target_image = tk.Button(frm_load_target_image, text='Load target image',
+        frm_load_target_image = ttk.LabelFrame(self.win, width=300, text='Target image')
+        btn_open_target_image = ttk.Button(frm_load_target_image, text='Load target image',
                                           command=self.open_file_target_image)
-        lbl_act_target_image_file = tk.Label(frm_load_target_image, text='File containing the target image :',
+        lbl_act_target_image_file = ttk.Label(frm_load_target_image, text='File containing the target image :',
                                              justify='left')
-        self.lbl_target_image_file = tk.Label(frm_load_target_image, text='', wraplength=200, justify='left',
+        self.lbl_target_image_file = ttk.Label(frm_load_target_image, text='', wraplength=200, justify='left',
                                               foreground='gray')
         btn_open_target_image.grid(row=0)
         lbl_act_target_image_file.grid(row=1)
         self.lbl_target_image_file.grid(row=2)
 
         # Display and process initialisation images
-        self.frm_initialisation_display = tk.LabelFrame(self.win, text='Initialisation and process')
-        self.btn_process = tk.Button(self.frm_initialisation_display, text='Process and display',
+        self.frm_initialisation_display = ttk.LabelFrame(self.win, text='Initialisation and process')
+        self.btn_process = ttk.Button(self.frm_initialisation_display, text='Process and display',
                                      command=self.image_processing)
         plt.rc('font', size=8)
 
@@ -112,8 +113,8 @@ class AberrationWindow(object):
         self.tk_widget_fig_initial.grid(row=1, columnspan=2, sticky='nsew', pady=5)
 
         # Phase retrieval
-        self.frm_calc = tk.LabelFrame(self.win, text='Phase pattern generator')
-        self.btn_gen = tk.Button(self.frm_calc, text='Calculate phase', command=self.calculate_phase)
+        self.frm_calc = ttk.LabelFrame(self.win, text='Phase pattern generator')
+        self.btn_gen = ttk.Button(self.frm_calc, text='Calculate phase', command=self.calculate_phase)
 
         plt.rc('font', size=8)
         self.fig_final = Figure(figsize=(5, 4), dpi=100)
@@ -133,9 +134,9 @@ class AberrationWindow(object):
         self.tk_widget_fig_final.grid(row=1, columnspan=2, sticky='nsew', pady=5)
 
         # Main layout
-        btn_ok = tk.Button(self.win, text='Apply', command=self.take_pattern)
-        btn_save = tk.Button(self.win, text='Save', command=self.save_pattern)
-        btn_close = tk.Button(self.win, text='Close', command=self.close_aberration_window)
+        btn_ok = ttk.Button(self.win, text='Apply', command=self.take_pattern)
+        btn_save = ttk.Button(self.win, text='Save', command=self.save_pattern)
+        btn_close = ttk.Button(self.win, text='Close', command=self.close_aberration_window)
         frm_set.grid(row=0, columnspan=2, sticky='nw', padx=5, pady=5)
         frm_load_initial_image.grid(row=1, column=0, sticky='nw', padx=5, pady=5)
         frm_load_target_image.grid(row=1, column=1, sticky='nw', padx=5, pady=5)

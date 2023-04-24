@@ -7,8 +7,8 @@ from model.settings import slm_size, bit_depth, chip_width, chip_height, wavelen
 import model.gerchberg_saxton as gs
 import model.aberration_correction as aberration
 
-types = ['Background', 'Flat', 'Tilt', 'Binary', 'Lens',
-         'Multi', 'Vortex', 'Zernike', 'Image', 'Hologram', 'Aberration']
+types = ['Backgr', 'Flat', 'Tilt', 'Binary', 'Lens',
+         'Multi', 'Vortex', 'Zernike', 'Image', 'Holo', 'Aberr']
 
 
 def new_type(frm_mid, typ):
@@ -34,7 +34,7 @@ def new_type(frm_mid, typ):
         return TypeTilt(frm_mid)
     elif typ == 'Binary':
         return TypeBinary(frm_mid)
-    elif typ == 'Background':
+    elif typ == 'Backgr':
         return TypeBackground(frm_mid)
     elif typ == 'Lens':
         return TypeLens(frm_mid)
@@ -46,9 +46,9 @@ def new_type(frm_mid, typ):
         return TypeZernike(frm_mid)
     elif typ == 'Image':
         return TypeImage(frm_mid)
-    elif typ == 'Hologram':
+    elif typ == 'Holo':
         return TypeHologram(frm_mid)
-    elif typ == 'Aberration':
+    elif typ == 'Aberr':
         return TypeAberration(frm_mid)
 
 
@@ -186,22 +186,22 @@ class TypeBackground(BaseType):
             The parent window for the frame.
 
         """
-        self.name = 'Background'
+        self.name = 'Backgr'
         self.parent = parent
-        self.frm_ = tk.Frame(self.parent)
+        self.frm_ = ttk.Frame(self.parent)
         self.frm_.grid(row=0, column=0, sticky='nsew')
 
         # Create a label frame for the background settings
-        lbl_frm = tk.LabelFrame(self.frm_, text='Background')
+        lbl_frm = ttk.LabelFrame(self.frm_, text='Background')
         lbl_frm.grid(row=0, column=0, sticky='ew')
 
         # Create a button for opening the background file
-        btn_open = tk.Button(lbl_frm, text='Open Background file',
+        btn_open = ttk.Button(lbl_frm, text='Open Background file',
                              command=self.open_file)
         btn_open.grid(row=0)
 
         # Create a label for displaying the selected file
-        self.lbl_file = tk.Label(lbl_frm, text='', wraplength=400,
+        self.lbl_file = ttk.Label(lbl_frm, text='', wraplength=400,
                                  justify='left', foreground='gray')
         self.lbl_file.grid(row=1)
 
@@ -279,15 +279,15 @@ class TypeFlat(BaseType):
 
         """
         self.name = 'Flat'
-        self.frm_ = tk.Frame(parent)
+        self.frm_ = ttk.Frame(parent)
         self.frm_.grid(row=1, column=0, sticky='nsew')
 
         # Create a label frame for the flat settings
-        lbl_frm = tk.LabelFrame(self.frm_, text='Flat')
+        lbl_frm = ttk.LabelFrame(self.frm_, text='Flat')
         lbl_frm.grid(row=0, column=0, sticky='ew')
 
         # Create a label and entry box for the phase shift value
-        lbl_phi = tk.Label(lbl_frm,
+        lbl_phi = ttk.Label(lbl_frm,
                            text='Phase shift (' + str(bit_depth) + '=2pi):')
         vcmd = (parent.register(self.callback))
         self.strvar_flat = tk.StringVar()
@@ -376,17 +376,17 @@ class TypeTilt(BaseType):
 
         """
         self.name = 'Tilt'
-        self.frm_ = tk.Frame(parent)
+        self.frm_ = ttk.Frame(parent)
         self.frm_.grid(row=2, column=0, sticky='nsew')
-        lbl_frm = tk.LabelFrame(self.frm_, text='Tilt')
+        lbl_frm = ttk.LabelFrame(self.frm_, text='Tilt')
         lbl_frm.grid(row=0, column=0, sticky='ew', padx=5, pady=10)
 
         # Creating objects
-        lbl_xdir = tk.Label(lbl_frm, text='Steepness along x-direction:')
-        lbl_ydir = tk.Label(lbl_frm, text='Steepness along y-direction:')
-        lbl_bit = tk.Label(lbl_frm,
+        lbl_xdir = ttk.Label(lbl_frm, text='Steepness along x-direction:')
+        lbl_ydir = ttk.Label(lbl_frm, text='Steepness along y-direction:')
+        lbl_bit = ttk.Label(lbl_frm,
                            text='(' + str(bit_depth) + ' corresponds to 2pi Rad)')
-        lbl_step = tk.Label(lbl_frm, text='(wasd) Step per click:')
+        lbl_step = ttk.Label(lbl_frm, text='(wasd) Step per click:')
         vcmd = (parent.register(self.callback))
         self.strvar_xdir = tk.StringVar()
         self.strvar_ydir = tk.StringVar()
@@ -525,24 +525,24 @@ class TypeBinary(BaseType):
 
         """
         self.name = 'Binary'
-        self.frm_ = tk.Frame(parent)
+        self.frm_ = ttk.Frame(parent)
         self.frm_.grid(row=3, column=0, sticky='nsew')
-        lbl_frm = tk.LabelFrame(self.frm_, text='Binary')
+        lbl_frm = ttk.LabelFrame(self.frm_, text='Binary')
         lbl_frm.grid(row=0, column=0, sticky='ew', padx=5, pady=10)
 
         # Creating entities
-        lbl_dir = tk.Label(lbl_frm, text='Direction for split:')
-        lbl_rat = tk.Label(lbl_frm, text='Area amount (in %):')
-        lbl_phi = tk.Label(lbl_frm, text='Phase change (in pi):')
+        lbl_dir = ttk.Label(lbl_frm, text='Direction for split:')
+        lbl_rat = ttk.Label(lbl_frm, text='Area amount (in %):')
+        lbl_phi = ttk.Label(lbl_frm, text='Phase change (in pi):')
         self.cbx_dir = ttk.Combobox(
             lbl_frm,
             values=['Horizontal', 'Vertical'],
             state='readonly',
             width=10)
-        self.ent_area = tk.Spinbox(lbl_frm, width=12, from_=0, to=100)
+        self.ent_area = ttk.Spinbox(lbl_frm, width=12, from_=0, to=100)
         vcmd = (parent.register(self.callback))
         self.strvar_phi = tk.StringVar()
-        self.ent_phi = tk.Entry(lbl_frm, width=12, validate='all',
+        self.ent_phi = ttk.Entry(lbl_frm, width=12, validate='all',
                                 validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_phi)
 
@@ -646,18 +646,18 @@ class TypeLens(BaseType):
 
         """
         self.name = 'Lens'
-        self.frm_ = tk.Frame(parent)
+        self.frm_ = ttk.Frame(parent)
         self.frm_.grid(row=4, column=0, sticky='nsew')
-        lbl_frm = tk.LabelFrame(self.frm_, text='Lens')
+        lbl_frm = ttk.LabelFrame(self.frm_, text='Lens')
         lbl_frm.grid(row=0, column=0, sticky='ew')
 
         # creating labels
-        lbl_ben = tk.Label(lbl_frm, text='Bending strength (1/f) [1/m]:')
+        lbl_ben = ttk.Label(lbl_frm, text='Bending strength (1/f) [1/m]:')
 
         # creating entries
         vcmd = (parent.register(self.callback))
         self.strvar_ben = tk.StringVar()
-        self.ent_ben = tk.Entry(lbl_frm, width=5, validate='all', validatecommand=(vcmd, '%d', '%P', '%S'),
+        self.ent_ben = ttk.Entry(lbl_frm, width=5, validate='all', validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_ben)
 
         # setup
@@ -777,72 +777,72 @@ class TypeMultibeam(BaseType):
 
         """
         self.name = 'Multibeam'
-        self.frm_ = tk.Frame(parent)
+        self.frm_ = ttk.Frame(parent)
         self.frm_.grid(row=5, column=0, sticky='nsew')
-        lbl_frm = tk.LabelFrame(self.frm_, text='Multibeam')
+        lbl_frm = ttk.LabelFrame(self.frm_, text='Multibeam')
         lbl_frm.grid(row=0, column=0, sticky='ew')
 
         # creating frames
-        frm_n = tk.Frame(lbl_frm)
-        frm_sprrad = tk.Frame(lbl_frm)
-        frm_spr = tk.Frame(frm_sprrad)
-        frm_rad = tk.Frame(frm_sprrad)
-        frm_int = tk.Frame(lbl_frm)
-        frm_pxsiz = tk.Frame(lbl_frm)
+        frm_n = ttk.Frame(lbl_frm)
+        frm_sprrad = ttk.Frame(lbl_frm)
+        frm_spr = ttk.Frame(frm_sprrad)
+        frm_rad = ttk.Frame(frm_sprrad)
+        frm_int = ttk.Frame(lbl_frm)
+        frm_pxsiz = ttk.Frame(lbl_frm)
 
         # creating labels
-        lbl_n = tk.Label(frm_n, text='n^2; n=:')
-        lbl_hor = tk.Label(frm_int, text='Hor:')
-        lbl_vert = tk.Label(frm_int, text='Vert:')
-        lbl_intil = tk.Label(frm_int, text='Intensity tilt')
-        lbl_insqr = tk.Label(frm_int, text='Intensity curve')
-        lbl_horspr = tk.Label(frm_spr, text='Horizontal spread:')
-        lbl_verspr = tk.Label(frm_spr, text='Vertical spread:')
-        lbl_cph = tk.Label(frm_sprrad, text='Hyp.phase diff')
-        lbl_rad = tk.Label(frm_rad, text='Phase[' + str(bit_depth) + ']:')
-        lbl_amp = tk.Label(frm_rad, text='Choose beam:')
-        lbl_pxsiz = tk.Label(frm_pxsiz, text='pixel size:')
+        lbl_n = ttk.Label(frm_n, text='n^2; n=:')
+        lbl_hor = ttk.Label(frm_int, text='Hor:')
+        lbl_vert = ttk.Label(frm_int, text='Vert:')
+        lbl_intil = ttk.Label(frm_int, text='Intensity tilt')
+        lbl_insqr = ttk.Label(frm_int, text='Intensity curve')
+        lbl_horspr = ttk.Label(frm_spr, text='Horizontal spread:')
+        lbl_verspr = ttk.Label(frm_spr, text='Vertical spread:')
+        lbl_cph = ttk.Label(frm_sprrad, text='Hyp.phase diff')
+        lbl_rad = ttk.Label(frm_rad, text='Phase[' + str(bit_depth) + ']:')
+        lbl_amp = ttk.Label(frm_rad, text='Choose beam:')
+        lbl_pxsiz = ttk.Label(frm_pxsiz, text='pixel size:')
 
         # creating entries
         vcmd = (parent.register(self.callback))
         self.strvar_n = tk.StringVar()
-        self.ent_n = tk.Entry(frm_n, width=5, validate='all',
+        self.ent_n = ttk.Entry(frm_n, width=5, validate='all',
                               validatecommand=(vcmd, '%d', '%P', '%S'),
                               textvariable=self.strvar_n)
         self.strvar_hpt = tk.StringVar()
-        self.ent_hpt = tk.Entry(frm_spr, width=5, validate='all',
+        self.ent_hpt = ttk.Entry(frm_spr, width=5, validate='all',
                                 validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_hpt)
         self.strvar_vpt = tk.StringVar()
-        self.ent_vpt = tk.Entry(frm_spr, width=5, validate='all',
+        self.ent_vpt = ttk.Entry(frm_spr, width=5, validate='all',
                                 validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_vpt)
         self.strvar_rad = tk.StringVar()
-        self.ent_rad = tk.Entry(frm_rad, width=5, validate='all',
+        self.ent_rad = ttk.Entry(frm_rad, width=5, validate='all',
                                 validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_rad)
         self.strvar_amp = tk.StringVar()
-        self.ent_amp = tk.Entry(frm_rad, width=5, validate='all',
+        self.ent_amp = ttk.Entry(frm_rad, width=5, validate='all',
                                 validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_amp)
         self.strvar_hit = tk.StringVar()
-        self.ent_hit = tk.Entry(frm_int, width=5, validate='all',
+        self.ent_hit = ttk.Entry(frm_int, width=5, validate='all',
                                 validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_hit)
         self.strvar_vit = tk.StringVar()
-        self.ent_vit = tk.Entry(frm_int, width=5, validate='all',
+        self.ent_vit = ttk.Entry(frm_int, width=5, validate='all',
                                 validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_vit)
         self.strvar_his = tk.StringVar()
-        self.ent_his = tk.Entry(frm_int, width=5, validate='all',
+        self.ent_his = ttk.Entry(frm_int, width=5, validate='all',
                                 validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_his)
         self.strvar_vis = tk.StringVar()
-        self.ent_vis = tk.Entry(frm_int, width=5, validate='all',
+        self.ent_vis = ttk.Entry(frm_int, width=5, validate='all',
                                 validatecommand=(vcmd, '%d', '%P', '%S'),
                                 textvariable=self.strvar_vis)
         self.strvar_pxsiz = tk.StringVar()
-        self.ent_pxsiz = tk.Entry(frm_pxsiz, width=5, validate='all',
+        self.ent_pxsiz = ttk.Entry(frm_pxsiz, width=5, validate='all',
                                   validatecommand=(vcmd, '%d', '%P', '%S'),
                                   textvariable=self.strvar_pxsiz)
 
@@ -1119,16 +1119,16 @@ class TypeVortex(BaseType):
 
         """
         self.name = 'Vortex'
-        self.frm_ = tk.Frame(parent)
+        self.frm_ = ttk.Frame(parent)
         self.frm_.grid(row=6, column=0, sticky='nsew')
-        lbl_frm = tk.LabelFrame(self.frm_, text='Vortex')
+        lbl_frm = ttk.LabelFrame(self.frm_, text='Vortex')
         lbl_frm.grid(row=0, column=0, sticky='ew')
 
         lbl_texts = ['Vortex order:', 'dx [mm]:', 'dy [mm]:']
-        labels = [tk.Label(lbl_frm, text=lbl_text) for lbl_text in lbl_texts]
+        labels = [ttk.Label(lbl_frm, text=lbl_text) for lbl_text in lbl_texts]
         vcmd = (parent.register(self.callback))
         self.strvars = [tk.StringVar() for lbl_text in lbl_texts]
-        self.entries = [tk.Entry(lbl_frm, width=11, validate='all',
+        self.entries = [ttk.Entry(lbl_frm, width=11, validate='all',
                                  validatecommand=(vcmd, '%d', '%P', '%S'),
                                  textvariable=strvar)
                         for strvar in self.strvars]
@@ -1202,9 +1202,9 @@ class TypeZernike(BaseType):
             The parent window for the frame.
         """
         self.name = 'Zernike'
-        self.frm_ = tk.Frame(parent)
+        self.frm_ = ttk.Frame(parent)
         self.frm_.grid(row=7, column=0, sticky='nsew')
-        lbl_frm = tk.LabelFrame(self.frm_, text='Zernike')
+        lbl_frm = ttk.LabelFrame(self.frm_, text='Zernike')
         lbl_frm.grid(row=0, column=0, sticky='ew')
 
         self.varnames = ['z1coef', 'z2coef', 'z3coef', 'z4coef', 'z5coef',
@@ -1214,10 +1214,10 @@ class TypeZernike(BaseType):
                      'Z_02 :', 'Z_22 :', 'Z_-22 :',
                      'Z_13 :', 'Z_-13 :', 'Z_33 :',
                      'Z_-33 :', 'Z size:', 'dx [mm]:', 'dy [mm]:']
-        labels = [tk.Label(lbl_frm, text=lbl_text) for lbl_text in lbl_texts]
+        labels = [ttk.Label(lbl_frm, text=lbl_text) for lbl_text in lbl_texts]
         vcmd = (parent.register(self.callback))
         self.strvars = [tk.StringVar() for lbl_text in lbl_texts]
-        self.entries = [tk.Entry(lbl_frm, width=11, validate='all',
+        self.entries = [ttk.Entry(lbl_frm, width=11, validate='all',
                                  validatecommand=(vcmd, '%d', '%P', '%S'),
                                  textvariable=strvar)
                         for strvar in self.strvars]
@@ -1317,14 +1317,14 @@ class TypeImage(TypeBackground):
 
         """
         self.name = 'Image'
-        self.frm_ = tk.Frame(parent)
+        self.frm_ = ttk.Frame(parent)
         self.frm_.grid(row=8, column=0)  # , sticky='nsew')
-        lbl_frm = tk.LabelFrame(self.frm_, text='Image')
+        lbl_frm = ttk.LabelFrame(self.frm_, text='Image')
         lbl_frm.grid(row=0, column=0, sticky='ew')
 
-        btn_open = tk.Button(lbl_frm, text='Open Phase Profile',
+        btn_open = ttk.Button(lbl_frm, text='Open Phase Profile',
                              command=self.open_file)
-        self.lbl_file = tk.Label(lbl_frm, text='', wraplength=300, justify='left')
+        self.lbl_file = ttk.Label(lbl_frm, text='', wraplength=300, justify='left')
         btn_open.grid(row=0)
         self.lbl_file.grid(row=1)
 
@@ -1357,19 +1357,19 @@ class TypeHologram(BaseType):
             The parent window for the frame.
 
         """
-        self.name = 'Hologram'
+        self.name = 'Holo'
         self.parent = parent
-        self.frm_ = tk.Frame(self.parent)
+        self.frm_ = ttk.Frame(self.parent)
         self.frm_.grid(row=0, column=0, sticky='nsew')
-        lbl_frm = tk.LabelFrame(self.frm_, text='Hologram')
+        lbl_frm = ttk.LabelFrame(self.frm_, text='Hologram')
         lbl_frm.grid(row=0, column=0, sticky='ew')
         self.gen_win = None
         self.img = None
 
-        btn_open = tk.Button(lbl_frm, text='Open generated hologram', command=self.open_file)
-        self.lbl_file = tk.Label(lbl_frm, text='', wraplength=400, justify='left', foreground='gray')
-        lbl_act_file = tk.Label(lbl_frm, text='Active Hologram file:', justify='left')
-        btn_generate = tk.Button(lbl_frm, text='Launch Hologram Generator', command=self.open_generator)
+        btn_open = ttk.Button(lbl_frm, text='Open generated hologram', command=self.open_file)
+        self.lbl_file = ttk.Label(lbl_frm, text='', wraplength=400, justify='left', foreground='gray')
+        lbl_act_file = ttk.Label(lbl_frm, text='Active Hologram file:', justify='left')
+        btn_generate = ttk.Button(lbl_frm, text='Launch Hologram Generator', command=self.open_generator)
 
         btn_open.grid(row=0)
         lbl_act_file.grid(row=1)
@@ -1458,19 +1458,19 @@ class TypeAberration(BaseType):
             The parent window for the frame.
 
         """
-        self.name = 'Aberration'
+        self.name = 'Aberr'
         self.parent = parent
-        self.frm_ = tk.Frame(self.parent)
+        self.frm_ = ttk.Frame(self.parent)
         self.frm_.grid(row=0, column=0, sticky='nsew')
-        lbl_frm = tk.LabelFrame(self.frm_, text='Aberration')
+        lbl_frm = ttk.LabelFrame(self.frm_, text='Aberration')
         lbl_frm.grid(row=0, column=0, sticky='ew')
         self.gen_win = None
         self.img = None
 
-        btn_open = tk.Button(lbl_frm, text='Open generated hologram', command=self.open_file)
-        self.lbl_file = tk.Label(lbl_frm, text='', wraplength=400, justify='left', foreground='gray')
-        lbl_act_file = tk.Label(lbl_frm, text='Active Hologram file:', justify='left')
-        btn_generate = tk.Button(lbl_frm, text='Launch aberration correction generator', command=self.open_generator)
+        btn_open = ttk.Button(lbl_frm, text='Open generated aberration correction', command=self.open_file)
+        self.lbl_file = ttk.Label(lbl_frm, text='', wraplength=400, justify='left', foreground='gray')
+        lbl_act_file = ttk.Label(lbl_frm, text='Active aberration correction file:', justify='left')
+        btn_generate = ttk.Button(lbl_frm, text='Launch aberration correction generator', command=self.open_generator)
 
         btn_open.grid(row=0)
         lbl_act_file.grid(row=1)
