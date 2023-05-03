@@ -209,11 +209,11 @@ class SLMControl:
         None
         """
         if self.feedback_win is None:
-            q_str1 = 'The feedbacker.py needs to look at fringes between the two beams.'
+            q_str1 = 'The feedbacker needs to look at fringes between the two beams.'
             q_str2 = 'Do you want to use a camera with spatial fringes or a spectrometer with spectral fringes?'
             q_str = q_str1 + '\n' + q_str2
             questionbox.PopupQuestion(self.open_feedback_window, 'Choose feedback method',
-                                      q_str, 'Open Camera', 'Open Spectrometer')
+                                       q_str, 'Open Camera', 'Open Spectrometer')
 
     def open_feedback_window(self, answer):
         """

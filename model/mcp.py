@@ -11,8 +11,8 @@ from PIL import Image, ImageTk
 import time
 import sys
 
-#sys.path.insert(0, "C:/Users/atto/camera_git/Vimba_6.0/VimbaPython/Source/") # D-lab
-sys.path.insert(0,"D:/Users/me2120re/Softwares/Camera Softwares/Vimba/Vimba_6.0/VimbaPython/Source/")  # Melvin computer
+sys.path.insert(0, "C:/Users/atto/camera_git/Vimba_6.0/VimbaPython/Source/") # D-lab
+#sys.path.insert(0,"D:/Users/me2120re/Softwares/Camera Softwares/Vimba/Vimba_6.0/VimbaPython/Source/")  # Melvin computer
 import cv2
 from vimba import *
 
