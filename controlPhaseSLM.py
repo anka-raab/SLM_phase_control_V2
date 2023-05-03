@@ -22,7 +22,7 @@ matplotlib.use("TkAgg")
 
 class SLMControl:
     """
-    A class for controlling the SLM for displaying phase maps.
+    A class for controlling the SLM.
     """
     def __init__(self, parent):
         """

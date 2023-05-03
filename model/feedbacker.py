@@ -6,7 +6,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib import pyplot as plt
 import matplotlib
 
-matplotlib.use("TkAgg")
 import avaspec_driver._avs_py as avs
 import gxipy as gx
 from PIL import Image, ImageTk
@@ -15,26 +14,17 @@ from views import draw_polygon
 from simple_pid import PID
 import threading
 from datetime import date
-from os.path import exists
 from collections import deque
 
-from ctypes import *
-
-import sys
-
-sys.path.insert(0, 'C:/Users/atto/SLM_git/SLM_phase_control_V2/thorlabs_apt/thorlabs_apt')
-import core as apt
-
-sys.path.insert(0, "C:/Users/atto/camera_git/Vimba_6.0/VimbaPython/Source/")
-
-import cv2
+from thorlabs_apt import core as apt
 from vimba import *
+import cv2
 
-SANTEC_SLM = True
+matplotlib.use("TkAgg")
 
 
 class Feedbacker(object):
-    """works back and forth with publish_window"""
+    """Works back and forth with publish_window"""
 
     def __init__(self, parent, slm_lib, CAMERA):
         self.CAMERA = CAMERA  # True for Camera Mode, False for Spectrometer Mode
@@ -48,8 +38,6 @@ class Feedbacker(object):
             title = 'SLM Phase Control - Feedbacker (spectral)'
         self.win.title(title)
         self.win.protocol("WM_DELETE_WINDOW", self.on_close)
-        if not SANTEC_SLM:
-            self.win.geometry('500x950+300+100')
         self.rect_id = 0
 
         global meas_has_started
@@ -148,10 +136,7 @@ class Feedbacker(object):
             frm_ratio, width=11, validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_flat)
-        if SANTEC_SLM:
-            text = '4'
-        else:
-            text = '8'
+        text = '4'
         if not CAMERA: text = '17'
         self.strvar_indexfft = tk.StringVar(self.win, text)
         lbl_indexfft = tk.Label(frm_ratio, text='Index fft:')
@@ -160,19 +145,13 @@ class Feedbacker(object):
             frm_ratio, width=11,
             textvariable=self.strvar_indexfft)
         self.lbl_angle = tk.Label(frm_ratio, text='angle')
-        if SANTEC_SLM:
-            text = '400, 1050'
-        else:
-            text = '255, 420'
+        text = '400, 1050'
         if not CAMERA: text = '1950'
         self.strvar_area1x = tk.StringVar(self.win, text)
         self.ent_area1x = tk.Entry(
             frm_ratio, width=11,
             textvariable=self.strvar_area1x)
-        if SANTEC_SLM:
-            text = '630, 650'
-        else:
-            text = '470, 480'
+        text = '630, 650'
         if not CAMERA: text = '2100'
         self.strvar_area1y = tk.StringVar(self.win, text)
         self.ent_area1y = tk.Entry(
@@ -622,6 +601,7 @@ class Feedbacker(object):
         self.stop_acquire = 0
         global stop_pid
         stop_pid = False
+
         # class attributes to store spectrometer state
         if not self.CAMERA:
             self.spec_interface_initialized = False
@@ -992,12 +972,10 @@ class Feedbacker(object):
         else:
             phi = 0
         phase_map = self.parent.phase_map + phi / 2 * bit_depth
-        if SANTEC_SLM:
-            self.slm_lib.SLM_Disp_Open(int(self.parent.ent_scr.get()))
-            self.slm_lib.SLM_Disp_Data(int(self.parent.ent_scr.get()), phase_map,
-                                       slm_size[1], slm_size[0])
-        else:
-            self.parent.pub_win.publish_img(phase_map)
+
+        self.slm_lib.SLM_Disp_Open(int(self.parent.ent_scr.get()))
+        self.slm_lib.SLM_Disp_Data(int(self.parent.ent_scr.get()), phase_map,
+                                   slm_size[1], slm_size[0])
 
     def init_cam(self):
         print("")
@@ -1062,12 +1040,9 @@ class Feedbacker(object):
                 ypoints = np.fromstring(self.ent_area1y.get(), sep=',')
                 assert len(xpoints) == len(ypoints) == 2
             except:
-                if SANTEC_SLM:
-                    xpoints = np.array([400, 1050])
-                    ypoints = np.array([630, 650])
-                else:
-                    xpoints = np.array([200, 550])
-                    ypoints = np.array([470, 480])
+                xpoints = np.array([400, 1050])
+                ypoints = np.array([630, 650])
+
             if xpoints[1] < xpoints[0]:
                 xpoints[1] = xpoints[0] + 2
             if ypoints[1] < ypoints[0]:
@@ -1342,4 +1317,4 @@ class Feedbacker(object):
             avs.AVS_Done()
         self.win.destroy()
         apt._cleanup()
-        self.parent.fbck_win = None
+        self.parent.feedback_win = None
