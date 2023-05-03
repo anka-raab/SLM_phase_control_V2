@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter.simpledialog import askstring
 from tkinter import ttk
 import gxipy as gx
 from PIL import Image, ImageTk
@@ -14,7 +15,7 @@ class CameraControl(object):
         self.parent = parent
         self.win = tk.Toplevel()
 
-        title = 'SLM Phase Control - Beam profile in the focus'
+        title = 'SLM Phase Control - Beam profile'
 
         self.win.title(title)
         self.win.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -34,23 +35,27 @@ class CameraControl(object):
 
         lbl_cam_ind = ttk.Label(frm_cam_but_set, text='Camera index:')
         self.strvar_cam_ind = tk.StringVar(self.win, '2')
-        self.ent_cam_ind = ttk.Entry(frm_cam_but_set, width=11, validate='all', validatecommand=(vcmd, '%d', '%P', '%S'),
-                                    textvariable=self.strvar_cam_ind)
+        self.ent_cam_ind = ttk.Entry(frm_cam_but_set, width=11, validate='all',
+                                     validatecommand=(vcmd, '%d', '%P', '%S'),
+                                     textvariable=self.strvar_cam_ind)
 
         lbl_cam_exp = ttk.Label(frm_cam_but_set, text='Camera exposure (µs):')
         self.strvar_cam_exp = tk.StringVar(self.win, '1000')
-        self.ent_cam_exp = ttk.Entry(frm_cam_but_set, width=11, validate='all', validatecommand=(vcmd, '%d', '%P', '%S'),
-                                    textvariable=self.strvar_cam_exp)
+        self.ent_cam_exp = ttk.Entry(frm_cam_but_set, width=11, validate='all',
+                                     validatecommand=(vcmd, '%d', '%P', '%S'),
+                                     textvariable=self.strvar_cam_exp)
 
         lbl_cam_gain = ttk.Label(frm_cam_but_set, text='Camera gain (0-24):')
         self.strvar_cam_gain = tk.StringVar(self.win, '20')
-        self.ent_cam_gain = ttk.Entry(frm_cam_but_set, width=11, validate='all', validatecommand=(vcmd, '%d', '%P', '%S')
-                                     , textvariable=self.strvar_cam_gain)
+        self.ent_cam_gain = ttk.Entry(frm_cam_but_set, width=11, validate='all',
+                                      validatecommand=(vcmd, '%d', '%P', '%S')
+                                      , textvariable=self.strvar_cam_gain)
 
         lbl_cam_time = ttk.Label(frm_cam_but_set, text='Acquisition "time" (1-inf):')
         self.strvar_cam_time = tk.StringVar(self.win, '1000')
-        self.ent_cam_time = ttk.Entry(frm_cam_but_set, width=11, validate='all', validatecommand=(vcmd, '%d', '%P', '%S')
-                                     , textvariable=self.strvar_cam_time)
+        self.ent_cam_time = ttk.Entry(frm_cam_but_set, width=11, validate='all',
+                                      validatecommand=(vcmd, '%d', '%P', '%S')
+                                      , textvariable=self.strvar_cam_time)
 
         frm_cam.grid(row=0, column=0, sticky='nsew')
         frm_cam_but.grid(row=1, column=0, sticky='nsew')
@@ -166,7 +171,7 @@ class CameraControl(object):
 
         bmp_image = Image.fromarray(numpy_image)
 
-        file_name = tk.simpledialog.askstring(title="Save As", prompt="Enter a file name (without the extension) :")
+        file_name = askstring(title="Save As", prompt="Enter a file name (without the extension) :")
         file_name += '.bmp'
 
         if file_name:

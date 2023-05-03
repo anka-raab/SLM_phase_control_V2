@@ -15,7 +15,7 @@ from tkinter.filedialog import askopenfilename, asksaveasfilename
 import santec_driver._slm_py as slm
 from model import phase_settings, feedbacker, mcp
 from model.settings import slm_size, bit_depth
-from views import preview_window, questionbox, camera_control
+from views import preview_window, questionbox, camera_control, andor_xuv_camera
 
 matplotlib.use("TkAgg")
 
@@ -60,9 +60,10 @@ class SLMControl:
         lbl_screen = ttk.Label(frm_top, text='SLM display number:')
 
         # Creating buttons
-        but_camera = ttk.Button(frm_bot, text='Beam profile', command=self.open_camera)
         but_mcp = ttk.Button(frm_bot, text='MCP', command=self.open_mcp)
-        but_fbck = ttk.Button(frm_bot, text='Feedbacker', command=self.open_feedback)
+        but_camera = ttk.Button(frm_bot, text='Beam profile', command=self.open_camera)
+        but_xuv_camera = ttk.Button(frm_bot, text='XUV Camera', command=self.open_xuv_camera)
+        but_feedback = ttk.Button(frm_bot, text='Feedbacker', command=self.open_feedback)
         but_prev = ttk.Button(frm_bot, text='Preview', command=self.open_prev)
         but_pub = ttk.Button(frm_bot, text='Publish', command=self.open_pub)
         but_exit = ttk.Button(frm_bot, text='EXIT', command=self.exit_prog)
@@ -101,11 +102,12 @@ class SLMControl:
 
         # Setting up bot frame
         but_mcp.grid(row=0, column=0, padx=5, pady=5)
-        but_camera.grid(row=0, column=1, padx=5, pady=5)
-        but_fbck.grid(row=0, column=2, padx=5, pady=5)
-        but_prev.grid(row=0, column=3, padx=5, pady=5)
-        but_pub.grid(row=0, column=4, padx=5, pady=5)
-        but_exit.grid(row=0, column=5, padx=5, pady=5)
+        but_xuv_camera.grid(row=0, column=1, padx=5, pady=5)
+        but_camera.grid(row=0, column=2, padx=5, pady=5)
+        but_feedback.grid(row=0, column=3, padx=5, pady=5)
+        but_prev.grid(row=0, column=4, padx=5, pady=5)
+        but_pub.grid(row=0, column=5, padx=5, pady=5)
+        but_exit.grid(row=0, column=6, padx=5, pady=5)
         # but_clean_settings.grid(row=0, column=6, padx=5, pady=5)
 
         # binding keys
@@ -239,6 +241,16 @@ class SLMControl:
         None
         """
         self.camera_win = camera_control.CameraControl(self)
+
+    def open_xuv_camera(self):
+        """
+        Opens the XUV camera.
+
+        Returns
+        -------
+        None
+        """
+        self.camera_win = andor_xuv_camera.AndorCameraViewer(self)
 
     def open_prev(self):
         """

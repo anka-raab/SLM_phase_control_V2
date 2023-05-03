@@ -1,37 +1,38 @@
 from model.settings import slm_size, bit_depth
+import avaspec_driver._avs_py as avs
+import gxipy as gx
+from views import draw_polygon
+from thorlabs_apt import core as apt
+from vimba import *
 import tkinter as tk
+from tkinter import ttk
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib import pyplot as plt
 import matplotlib
-
-import avaspec_driver._avs_py as avs
-import gxipy as gx
 from PIL import Image, ImageTk
 import time
-from views import draw_polygon
+import cv2
 from simple_pid import PID
 import threading
 from datetime import date
 from collections import deque
 
-from thorlabs_apt import core as apt
-from vimba import *
-import cv2
-
 matplotlib.use("TkAgg")
 
 
 class Feedbacker(object):
-    """Works back and forth with publish_window"""
+    """
+    Works back and forth with publish_window
+    """
 
     def __init__(self, parent, slm_lib, CAMERA):
         self.CAMERA = CAMERA  # True for Camera Mode, False for Spectrometer Mode
         self.parent = parent
         self.slm_lib = slm_lib
         self.win = tk.Toplevel()
-        self.setpoint = 0
+        self.set_point = 0
         if self.CAMERA:
             title = 'SLM Phase Control - Feedbacker (spatial)'
         else:
@@ -366,10 +367,11 @@ class Feedbacker(object):
             frm_spc_but.grid(row=0, column=0, sticky='nsew')
 
         frm_plt.grid(row=1, column=0, sticky='nsew')
-        frm_mcp_image.grid(row=1, column=2, sticky='nsew')
+        frm_mcp_image.grid(row=1, column=1, sticky='nsew')
 
         frm_mid.grid(row=2, column=0, sticky='nsew')
         frm_bot.grid(row=3, column=0)
+
         if self.CAMERA:
             frm_ratio.grid(row=0, column=0, padx=5)
             frm_pid.grid(row=0, column=1, padx=5)
@@ -1273,7 +1275,7 @@ class Feedbacker(object):
         print(poly_1)
 
     def set_setpoint(self):
-        self.setpoint = float(self.ent_setp.get())
+        self.set_point = float(self.ent_setp.get())
 
     def set_pid_val(self):
         self.pid.Kp = float(self.ent_pidp.get())
@@ -1286,7 +1288,7 @@ class Feedbacker(object):
 
         while True:
             time.sleep(0.05)
-            correction = self.pid((self.im_angl - self.setpoint + np.pi) % (2 * np.pi) - np.pi)
+            correction = self.pid((self.im_angl - self.set_point + np.pi) % (2 * np.pi) - np.pi)
             self.strvar_flat.set(correction)
             self.feedback()
             # print(self.pid.components)
@@ -1310,11 +1312,11 @@ class Feedbacker(object):
         # self.f.close()
         plt.close(self.figr)
         plt.close(self.figp)
+        apt._cleanup()
         if self.CAMERA:
             None
         else:
             self.spec_deactivate()
             avs.AVS_Done()
         self.win.destroy()
-        apt._cleanup()
         self.parent.feedback_win = None
