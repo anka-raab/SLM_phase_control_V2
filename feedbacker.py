@@ -23,8 +23,18 @@ import threading
 from pynput import keyboard
 from datetime import date
 from os.path import exists
+from collections import deque
+
+from ctypes import *
+
 
 import sys
+
+
+sys.path.insert(0,'C:/Users/atto/SLM_git/SLM_phase_control_V2/thorlabs_apt/thorlabs_apt')
+import core as apt
+
+
 sys.path.insert(0, "C:/Users/atto/camera_git/Vimba_6.0/VimbaPython/Source/")
 
 import cv2
@@ -52,12 +62,16 @@ class feedbacker(object):
         global meas_has_started
         meas_has_started = False
         
+        #This opens the autologfile from the start! closes it on close command
+        self.autolog = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' + 'auto-log.txt'
+        #self.f = open(self.autolog, "a+")
+        
         # creating frames
         frm_bot = tk.Frame(self.win)
         frm_plt = tk.Frame(self.win)
         frm_mcp_image = tk.Frame(self.win)
-
         frm_mid = tk.Frame(self.win)
+        
         if self.CAMERA:
             frm_cam = tk.Frame(self.win)
             frm_cam_but = tk.Frame(frm_cam)
@@ -66,10 +80,11 @@ class feedbacker(object):
             frm_spc_but = tk.Frame(self.win)
             frm_spc_but_set = tk.Frame(frm_spc_but)
             frm_plt_set = tk.LabelFrame(frm_mid, text='Plot options')
+            
         frm_ratio = tk.LabelFrame(frm_mid, text='Phase extraction')
         frm_pid = tk.LabelFrame(frm_mid, text='PID controller')
-        
-        frm_meas = tk.LabelFrame(frm_mid, text='Proper Phase Scan')
+        frm_meas = tk.LabelFrame(frm_mid, text='Phase Scan')
+        frm_stage = tk.LabelFrame(frm_mid, text='Stage Control')
 
         
         vcmd = (self.win.register(self.parent.callback))
@@ -202,17 +217,19 @@ class feedbacker(object):
 
 
         lbl_from = tk.Label(frm_meas, text='From:')
-        self.strvar_from = tk.StringVar(self.win,'-2.6')
+        self.strvar_from = tk.StringVar(self.win,'-3.1')
         self.ent_from = tk.Entry(
             frm_meas, width=5,  validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_from)
+        
         lbl_to = tk.Label(frm_meas, text='To:')
-        self.strvar_to = tk.StringVar(self.win,'2.6')
+        self.strvar_to = tk.StringVar(self.win,'3.1')
         self.ent_to = tk.Entry(
             frm_meas, width=5,  validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_to)
+        
         lbl_steps = tk.Label(frm_meas, text='Steps:')
         self.strvar_steps = tk.StringVar(self.win,'10')
         self.ent_steps = tk.Entry(
@@ -220,23 +237,153 @@ class feedbacker(object):
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_steps)     
         lbl_avgs = tk.Label(frm_meas, text='Avgs:')
+        
         self.strvar_avgs = tk.StringVar(self.win,'5')
         self.ent_avgs = tk.Entry(
             frm_meas, width=5,  validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_avgs)     
 
-
         lbl_comment = tk.Label(frm_meas, text='comment:')
         self.strvar_comment = tk.StringVar(self.win, ' ')
         self.ent_comment = tk.Entry(
             frm_meas, width=10,  validate='none',
             textvariable=self.strvar_comment)     
+        
+        self.var_phasescan = tk.IntVar()
+        self.cb_phasescan = tk.Checkbutton(frm_meas, text='Scan',variable=self.var_phasescan, onvalue=1, offvalue=0, command=None)
 
 
-        but_meas_scan = tk.Button(frm_meas, text='Measure + Save', command=self.enabl_mcp)
-        but_meas_simple = tk.Button(frm_meas, text='Single Image + Save', command=self.enabl_mcp_simple)
 
+        self.but_meas_scan = tk.Button(frm_meas, text='Measure + Save', command=self.enabl_mcp)
+        self.but_meas_simple = tk.Button(frm_meas, text='Single Image + Save', command=self.enabl_mcp_simple)
+        
+        lbl_Stage = tk.Label(frm_stage, text='Stage')
+        lbl_Nr = tk.Label(frm_stage, text='#')        
+        lbl_is = tk.Label(frm_stage, text='is')        
+        lbl_should = tk.Label(frm_stage, text='should')
+
+        lbl_stage_scan_from = tk.Label(frm_stage, text='from:')
+        lbl_stage_scan_to = tk.Label(frm_stage, text='to:')
+        lbl_stage_scan_steps = tk.Label(frm_stage, text='steps:')
+        
+        lbl_WPR = tk.Label(frm_stage, text='WP red:')
+        self.strvar_WPR_is = tk.StringVar(self.win,'')
+        self.ent_WPR_is = tk.Entry(
+            frm_stage, width=5,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_WPR_is)
+        self.strvar_WPR_should = tk.StringVar(self.win,'')
+        self.ent_WPR_should = tk.Entry(
+            frm_stage, width=5,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_WPR_should)
+        self.strvar_WPR_Nr = tk.StringVar(self.win,'83837724')
+        self.ent_WPR_Nr = tk.Entry(
+            frm_stage, width=9,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_WPR_Nr)
+        #scan parameters
+        self.strvar_WPR_from = tk.StringVar(self.win,'0')
+        self.ent_WPR_from = tk.Entry(
+            frm_stage, width=9,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_WPR_from)
+        self.strvar_WPR_to = tk.StringVar(self.win,'45')
+        self.ent_WPR_to = tk.Entry(
+            frm_stage, width=9,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_WPR_to)
+        self.strvar_WPR_steps = tk.StringVar(self.win,'10')
+        self.ent_WPR_steps = tk.Entry(
+            frm_stage, width=9,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_WPR_steps)
+        self.var_wprscan = tk.IntVar()
+        self.cb_wprscan = tk.Checkbutton(frm_stage, text='Scan',variable=self.var_wprscan, onvalue=1, offvalue=0, command=None)
+        #buttons
+        self.but_WPR_Ini = tk.Button(frm_stage, text='Init', command=self.init_WPR)
+        self.but_WPR_Read = tk.Button(frm_stage, text='Read', command=self.read_WPR)
+        self.but_WPR_Move = tk.Button(frm_stage, text='Move', command=self.move_WPR)
+
+        
+        lbl_WPG = tk.Label(frm_stage, text='WP green:')
+        self.strvar_WPG_is = tk.StringVar(self.win,'')
+        self.ent_WPG_is = tk.Entry(
+            frm_stage, width=5,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_WPG_is)
+        self.strvar_WPG_should = tk.StringVar(self.win,'')
+        self.ent_WPG_should = tk.Entry(
+            frm_stage, width=5,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_WPG_should)
+        self.strvar_WPG_Nr = tk.StringVar(self.win,'83837725')
+        self.ent_WPG_Nr = tk.Entry(
+            frm_stage, width=9,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_WPG_Nr)
+        self.but_WPG_Ini = tk.Button(frm_stage, text='Init', command=self.init_WPG)
+        self.but_WPG_Read = tk.Button(frm_stage, text='Read', command=self.read_WPG)
+        self.but_WPG_Move = tk.Button(frm_stage, text='Move', command=self.move_WPG)
+        #scan parameters
+        self.strvar_WPG_from = tk.StringVar(self.win,'0')
+        self.ent_WPG_from = tk.Entry(
+            frm_stage, width=9,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_WPG_from)
+        self.strvar_WPG_to = tk.StringVar(self.win,'45')
+        self.ent_WPG_to = tk.Entry(
+            frm_stage, width=9,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_WPG_to)
+        self.strvar_WPG_steps = tk.StringVar(self.win,'10')
+        self.ent_WPG_steps = tk.Entry(
+            frm_stage, width=9,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_WPG_steps)
+        self.var_wpgscan = tk.IntVar()
+        self.cb_wpgscan = tk.Checkbutton(frm_stage, text='Scan',variable=self.var_wpgscan, onvalue=1, offvalue=0, command=None)
+        
+        lbl_Delay = tk.Label(frm_stage, text='Delay:')
+        self.strvar_Delay_is = tk.StringVar(self.win,'')
+        self.ent_Delay_is = tk.Entry(
+            frm_stage, width=5,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_Delay_is)
+        self.strvar_Delay_should = tk.StringVar(self.win,'')
+        self.ent_Delay_should = tk.Entry(
+            frm_stage, width=5,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_Delay_should)
+        self.strvar_Delay_Nr = tk.StringVar(self.win,'83820773')
+        self.ent_Delay_Nr = tk.Entry(
+            frm_stage, width=9,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_Delay_Nr)
+        #scan parameters
+        self.strvar_Delay_from = tk.StringVar(self.win,'6.40')
+        self.ent_Delay_from = tk.Entry(
+            frm_stage, width=9,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_Delay_from)
+        self.strvar_Delay_to = tk.StringVar(self.win,'6.45')
+        self.ent_Delay_to = tk.Entry(
+            frm_stage, width=9,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_Delay_to)
+        self.strvar_Delay_steps = tk.StringVar(self.win,'10')
+        self.ent_Delay_steps = tk.Entry(
+            frm_stage, width=9,  validate='all',
+            validatecommand=(vcmd, '%d', '%P', '%S'),
+            textvariable=self.strvar_Delay_steps)
+        self.var_delayscan = tk.IntVar()
+        self.cb_delayscan = tk.Checkbutton(frm_stage, text='Scan',variable=self.var_delayscan, onvalue=1, offvalue=0, command=None)
+        self.but_Delay_Ini = tk.Button(frm_stage, text='Init', command=self.init_Delay)
+        self.but_Delay_Read = tk.Button(frm_stage, text='Read', command=self.read_Delay)
+        self.but_Delay_Move = tk.Button(frm_stage, text='Move', command=self.move_Delay)
+        
+        
 
         # setting up
         if self.CAMERA:
@@ -259,6 +406,7 @@ class feedbacker(object):
             frm_ratio.grid(row=0, column=1, padx=5)
             frm_pid.grid(row=0, column=2, padx=5)
             frm_meas.grid(row=0, column=3, padx=5)
+            frm_stage.grid(row=0, column=4, padx=5)
 
             frm_ratio.config(width=162, height=104)
             
@@ -325,10 +473,68 @@ class feedbacker(object):
         self.ent_steps.grid(row=2, column=1)
         self.ent_avgs.grid(row=3, column=1)
         self.ent_comment.grid(row=4, column=1)
+        self.cb_phasescan.grid(row=5,column=1)
 
-        but_meas_scan.grid(row=5, column=0)
-        but_meas_simple.grid(row=5, column=1)
+        self.but_meas_scan.grid(row=6, column=0)
+        self.but_meas_simple.grid(row=6, column=1)
 
+
+        # setting up frm_stage
+        lbl_Stage.grid(row=1,column = 1)
+        lbl_Nr.grid(row=1,column = 2)
+        lbl_is.grid(row=1,column = 3)
+        lbl_should.grid(row=1,column = 4)
+
+        lbl_stage_scan_from.grid(row=1,column = 8)
+        lbl_stage_scan_to.grid(row=1,column = 9)
+        lbl_stage_scan_steps.grid(row=1,column = 10)
+
+        lbl_WPR.grid(row=2,column = 1)
+        lbl_WPG.grid(row=3,column = 1)
+        lbl_Delay.grid(row=4,column = 1)
+        
+        self.ent_WPR_Nr.grid(row=2,column=2)
+        self.ent_WPG_Nr.grid(row=3,column=2)
+        self.ent_Delay_Nr.grid(row=4,column=2)
+        
+        self.ent_WPR_is.grid(row=2,column=3)
+        self.ent_WPG_is.grid(row=3,column=3)
+        self.ent_Delay_is.grid(row=4,column=3)
+        
+        self.ent_WPR_should.grid(row=2,column=4)
+        self.ent_WPG_should.grid(row=3,column=4)
+        self.ent_Delay_should.grid(row=4,column=4)
+        
+        self.but_WPR_Ini.grid(row=2,column=5)
+        self.but_WPR_Read.grid(row=2,column=6)
+        self.but_WPR_Move.grid(row=2,column=7)
+        
+        self.but_WPG_Ini.grid(row=3,column=5)
+        self.but_WPG_Read.grid(row=3,column=6)
+        self.but_WPG_Move.grid(row=3,column=7)
+
+        self.but_Delay_Ini.grid(row=4,column=5)
+        self.but_Delay_Read.grid(row=4,column=6)
+        self.but_Delay_Move.grid(row=4,column=7)
+        
+        
+        self.ent_WPR_from.grid(row=2, column=8)
+        self.ent_WPR_to.grid(row=2, column=9)
+        self.ent_WPR_steps.grid(row=2, column=10)
+        self.ent_WPG_from.grid(row=3, column=8)
+        self.ent_WPG_to.grid(row=3, column=9)
+        self.ent_WPG_steps.grid(row=3, column=10)
+        self.ent_Delay_from.grid(row=4, column=8)
+        self.ent_Delay_to.grid(row=4, column=9)
+        self.ent_Delay_steps.grid(row=4, column=10)
+        
+        self.cb_wprscan.grid(row=2,column=11)
+        self.cb_wpgscan.grid(row=3,column=11)
+        self.cb_delayscan.grid(row=4,column=11)
+
+
+
+        #lbl_WPR.grid(row=2,column = 1)
         
         # setting up cam image
         if self.CAMERA:
@@ -341,10 +547,9 @@ class feedbacker(object):
             self.axMCP=self.figrMCP.add_subplot(211)
             self.axHarmonics=self.figrMCP.add_subplot(212)
             self.axMCP.set_xlim(0,1600)
-         
             self.axMCP.set_ylim(0,1000)
             self.axHarmonics.set_xlim(0,1600)
-            self.axHarmonics.set_aspect(1600/1000)
+            #self.axHarmonics.set_aspect(1600/1000)
 
 
             #self.axHarmonics.set_ylim(0,100)
@@ -352,8 +557,10 @@ class feedbacker(object):
             self.figrMCP.tight_layout()
             self.figrMCP.canvas.draw()
             self.imgMCP=FigureCanvasTkAgg(self.figrMCP, frm_mcp_image)
+            #self.imgMCP=FigureCanvasTkAgg(self.figrMCP, frm_plt)
             self.tk_widget_figrMCP = self.imgMCP.get_tk_widget()
             self.tk_widget_figrMCP.grid(row=0, column=0, sticky='nsew')
+            #self.tk_widget_figrMCP.grid(row=0, column=1, sticky='nsew')
             self.imgMCP.draw()
 
             
@@ -432,15 +639,128 @@ class feedbacker(object):
         if not self.CAMERA:
             self.spec_interface_initialized = False
             self.active_spec_handle = None
-
+    
+    
+    def init_WPR(self):
+        try:
+            self.WPR = apt.Motor(int(self.ent_WPR_Nr.get()))
+            self.but_WPR_Ini.config(fg='green')
+        except:
+            self.but_WPR_Ini.config(fg='red')
+            print("not able to initalize motor")
+    
+    def read_WPR(self):
+        try:
+            pos=self.WPR.position
+            self.strvar_WPR_is.set(pos)
+        except:
+            print("Position cound not be read")
+       
+    def move_WPR(self):
+         try:
+            pos=float(self.strvar_WPR_should.get())
+            self.WPR.move_to(pos,True)
+            self.read_WPR()
+         except:
+             print("Moving the stage failed :(")
+        
+    def init_WPG(self):
+        try:
+            self.WPG = apt.Motor(int(self.ent_WPG_Nr.get()))
+            self.but_WPG_Ini.config(fg='green')
+        except:
+            self.but_WPG_Ini.config(fg='red')
+            print("not able to initalize motor")
+       
+    def read_WPG(self):
+        try:
+            pos=self.WPG.position
+            self.strvar_WPG_is.set(pos)
+        except:
+            print("Position cound not be read")
+          
+    def move_WPG(self):
+        try:
+           pos=float(self.strvar_WPG_should.get())
+           self.WPG.move_to(pos,True)
+           self.read_WPG()
+        except:
+            print("Moving the stage failed :(")
+        
+    def init_Delay(self):
+        try:
+            self.Delay = apt.Motor(int(self.ent_Delay_Nr.get()))
+            self.but_Delay_Ini.config(fg='green')
+        except:
+            self.but_Delay_Ini.config(fg='red')
+            print("not able to initalize motor")
+       
+    def read_Delay(self):
+        try:
+            pos=self.Delay.position
+            self.strvar_Delay_is.set(pos)
+        except:
+            print("Position cound not be read")
+          
+    def move_Delay(self):
+        try:
+           pos=float(self.strvar_Delay_should.get())
+           self.Delay.move_to(pos,True)
+           self.read_Delay()
+        except:
+            print("Moving the stage failed :(")
    
+    
+   
+    
+   #def scan(self):
+       
+    def take_image(self,avgs, record_phase = True):
+        
+       #if record_phase:
+       #    phasefilename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' +str(int(image_nr))+ '-' + 'phase_values.txt'
+       #    global g
+       #    g = open(phasefilename,"a+")
+           
+       #this is the image taking part
+       with Vimba.get_instance() as vimba:
+           cams = vimba.get_all_cameras()
+           image = np.zeros([1000, 1600])
+           global meas_has_started
+           self.d_phase = deque()
+           meas_has_started = True
+           nr =  avgs
+           with cams[0] as cam:
+               for frame in cam.get_frame_generator(limit = avgs):
+                  frame = cam.get_frame()
+                  frame.convert_pixel_format(PixelFormat.Mono8)
+                  img = frame.as_opencv_image()
+                  img = np.squeeze(frame.as_opencv_image())
+                  numpy_image = img
+                  image = image + numpy_image
+               image = image/nr
+               meas_has_started = False
+        #image taking part ends here     
+       #        if record_phase:
+       #            g.close()
+       return image
+   
+    
+    def save_image(self,image, image_nr, image_info = "Test"):
+        self.f = open(self.autolog, "a+")
+        filename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' + str(image_nr) + '.bmp'
+        cv2.imwrite(filename, image)
+        self.f.write(str(int(image_nr))+"\t"+image_info+"\n")
+        self.f.close()
+        return 1
+        
+    
     def enabl_mcp(self):
         global stop_mcp
         stop_mcp=False
         self.mcp_thread = threading.Thread(target=self.measure)
         self.mcp_thread.daemon = True
         self.mcp_thread.start()
-    
        
   
 
@@ -450,129 +770,244 @@ class feedbacker(object):
         self.mcp_thread = threading.Thread(target=self.measure_simple)
         self.mcp_thread.daemon = True
         self.mcp_thread.start()
-
-    def measure(self):
-        print("now I am measuring",float(self.ent_from.get()))
-        
-        name = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' + 'auto-log.txt'
-        if exists(name):
-            print("a log file already exists!")
-            lines = np.loadtxt(name, comments="#", delimiter="\t", unpack=False)
-            f= open(name,"a+")
-            print(lines.shape)
-            #last_line = f.readlines()[-1]
+    
+    
+    def get_start_image(self):
+        self.f = open(self.autolog, "a+")
+        lines = np.loadtxt(self.autolog, comments="#", delimiter="\t", unpack=False,usecols=(0,))
+        if lines.size > 0:
             try:
                 start_image=lines[-1,0] +1
             except:
                 start_image=lines[-1] +1
             print("The last image had index " + str(int(start_image-1)))
         else:
-            f= open(name,"a+")
             start_image = 0
+        self.f.close()
+        return start_image
         
-        f.write("# "+ " from: " +str(self.ent_from.get()) + " to: " + str(self.ent_to.get()) + " Steps: " + str(self.ent_steps.get()) + " avgs: " + str(self.ent_avgs.get()) +str(self.ent_comment.get())+"\n")
+    def phase_scan(self):
+        start_image = self.get_start_image()
+        print("Start image: " + str(start_image))
         self.phis = np.linspace(float(self.ent_from.get()),float(self.ent_to.get()),int(self.ent_steps.get()))
-        
         print("getting to scan starting point...")
         self.strvar_setp.set(self.phis[0])
         self.set_setpoint()
-        time.sleep(3)
-        print("Ready to scan!")
-        
+        time.sleep(1)
+        print("Ready to scan the phase!")
         for ind,phi in enumerate(self.phis):
+            start_time = time.time()
             self.strvar_setp.set(phi)
             self.set_setpoint()
-            with Vimba.get_instance() as vimba:
-                cams = vimba.get_all_cameras()
-                image = np.zeros([1000, 1600])
-                start_time = time.time()
-                time.sleep(0.5)
-                phasefilename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' +str(int(start_image+ind))+ '-' + 'phase_values.txt'
-                global g
-                g = open(phasefilename,"a+")
-                global meas_has_started
-                meas_has_started = True
+            im = self.take_image(int(self.ent_avgs.get()))
+            info = str(round(phi,2)) + "\t" + str(np.round(np.mean(np.unwrap(self.d_phase)),2)) + "\t" + str(np.round(np.std(np.unwrap(self.d_phase)),2)) 
+            print(len(self.d_phase))
+            self.save_image(im,start_image+ind, info)
+            self.plot_MCP(im)
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            print("Imagenr " , (start_image+ind) , " Phase: ", round(phi,2)," Elapsed time: ", round(elapsed_time,2)) 
+    
+    
+    def measure(self):
+        self.but_meas_scan.config(fg = 'red')
+        
+        if self.var_phasescan.get() == 1 and self.var_wpgscan.get() == 1:
+            print("A phase scan for each green power!")
+            wpg_values = np.linspace(float(self.ent_WPG_from.get()), float(self.ent_WPG_to.get()), int(self.ent_WPG_steps.get()))
+            for ind,green in enumerate(wpg_values):
+                self.strvar_WPG_should.set(str(green))
+                self.move_WPG()
+                self.read_WPG()
+                self.f = open(self.autolog, "a+")
+                self.f.write("# Waveplate Scan, " + str(self.ent_WPG_is.get()))
+                self.f.write("# Phase scan from " + self.ent_from.get() + " to " + self.ent_to.get() + " in " +self.ent_steps.get()+ " with " + self.ent_avgs.get() + " averages" + " comment: " + self.ent_comment.get() + "\n")
+                self.phase_scan()
+                self.f.close()
+        
+        if self.var_phasescan.get() == 1:
+            self.f = open(self.autolog, "a+")
+            self.f.write("# Phase scan from " + self.ent_from.get() + " to " + self.ent_to.get() + " in " +self.ent_steps.get()+ " with " + self.ent_avgs.get() + " averages" + " comment: " + self.ent_comment.get())
+            self.phase_scan()
+            self.f.close()
 
-                nr =  int(self.ent_avgs.get())
+        self.but_meas_scan.config(fg = 'green')
+        
+    
+    # def measure(self):
+    #     print("entered the measure funciton yay")
+    #     #get the number of last image from autologfile
+    #     lines = np.loadtxt(self.autolog, comments="#", delimiter="\t", unpack=False)
+    #     if lines.size > 0:
+    #         try:
+    #             start_image=lines[-1,0] +1
+    #         except:
+    #             start_image=lines[-1] +1
+    #         print("The last image had index " + str(int(start_image-1)))
+    #     else:
+    #         start_image = 0
+        
+    #     print("made it to here")
+    
+    #     if self.var_phasescan.get() == 1:
+    #         self.phis = np.linspace(float(self.ent_from.get()),float(self.ent_to.get()),int(self.ent_steps.get()))
+                            
+    #         print("getting to scan starting point...")
+    #         self.strvar_setp.set(self.phis[0])
+    #         self.set_setpoint()
+    #         time.sleep(1)
+    #         print("Ready to scan the phase!")
+    #         for ind,phi in enumerate(self.phis):
+    #             start_time = time.time()
+    #             self.strvar_setp.set(phi)
+    #             self.set_setpoint()
+    #             im = self.take_image(int(self.ent_avgs.get()))
+    #             info = str(round(phi,2))
+    #             self.save_image(im,start_image+ind, info)
+    #             self.plot_MCP(im)
+    #             end_time = time.time()
+    #             elapsed_time = end_time - start_time
+    #             print("Phase: ", round(phi,2)," Elapsed time: ", round(elapsed_time,2)) 
+
+    # def measure(self):
+    #     print("now I am measuring",float(self.ent_from.get()))
+        
+    #     name = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' + 'auto-log.txt'
+    #     if exists(name):
+    #         print("a log file already exists!")
+    #         lines = np.loadtxt(name, comments="#", delimiter="\t", unpack=False)
+    #         f= open(name,"a+")
+    #         print(lines.shape)
+    #         #last_line = f.readlines()[-1]
+    #         try:
+    #             start_image=lines[-1,0] +1
+    #         except:
+    #             start_image=lines[-1] +1
+    #         print("The last image had index " + str(int(start_image-1)))
+    #     else:
+    #         f= open(name,"a+")
+    #         start_image = 0
+        
+    #     f.write("# "+ " from: " +str(self.ent_from.get()) + " to: " + str(self.ent_to.get()) + " Steps: " + str(self.ent_steps.get()) + " avgs: " + str(self.ent_avgs.get()) +str(self.ent_comment.get())+"\n")
+    #     self.phis = np.linspace(float(self.ent_from.get()),float(self.ent_to.get()),int(self.ent_steps.get()))
+        
+    #     print("getting to scan starting point...")
+    #     self.strvar_setp.set(self.phis[0])
+    #     self.set_setpoint()
+    #     time.sleep(3)
+    #     print("Ready to scan!")
+        
+    #     for ind,phi in enumerate(self.phis):
+    #         self.strvar_setp.set(phi)
+    #         self.set_setpoint()
+    #         with Vimba.get_instance() as vimba:
+    #             cams = vimba.get_all_cameras()
+    #             image = np.zeros([1000, 1600])
+    #             start_time = time.time()
+    #             time.sleep(0.5)
+    #             phasefilename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' +str(int(start_image+ind))+ '-' + 'phase_values.txt'
+    #             global g
+    #             g = open(phasefilename,"a+")
+    #             global meas_has_started
+    #             meas_has_started = True
+
+    #             nr =  int(self.ent_avgs.get())
                     
-                with cams[0] as cam:
-                    for frame in cam.get_frame_generator(limit = int(self.ent_avgs.get())):
-                       frame = cam.get_frame()
-                       frame.convert_pixel_format(PixelFormat.Mono8)
-                       img = frame.as_opencv_image()
-                       img = np.squeeze(frame.as_opencv_image())
-                       numpy_image = img
-                       image = image + numpy_image
-                    image = image/nr
-                    end_time = time.time()
-                    elapsed_time = end_time - start_time
-                    filename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' + str(int(start_image+ind)) + '.bmp'
-                    cv2.imwrite(filename, image)
-                    print("Phase: ", round(phi,2)," Elapsed time: ", round(elapsed_time,2)) 
-                    f.write(str(int(start_image+ind))+"\t"+str(round(phi,2))+"\n")
-                    self.plot_MCP(image)
-                    meas_has_started = False
-                    g.close()
+    #             with cams[0] as cam:
+    #                 for frame in cam.get_frame_generator(limit = int(self.ent_avgs.get())):
+    #                    frame = cam.get_frame()
+    #                    frame.convert_pixel_format(PixelFormat.Mono8)
+    #                    img = frame.as_opencv_image()
+    #                    img = np.squeeze(frame.as_opencv_image())
+    #                    numpy_image = img
+    #                    image = image + numpy_image
+    #                 image = image/nr
+    #                 end_time = time.time()
+    #                 elapsed_time = end_time - start_time
+    #                 filename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' + str(int(start_image+ind)) + '.bmp'
+    #                 cv2.imwrite(filename, image)
+    #                 print("Phase: ", round(phi,2)," Elapsed time: ", round(elapsed_time,2)) 
+    #                 f.write(str(int(start_image+ind))+"\t"+str(round(phi,2))+"\n")
+    #                 self.plot_MCP(image)
+    #                 meas_has_started = False
+    #                 g.close()
 
-        f.close()
-        return image
+    #     f.close()
+    #     return image
+    
     
     
     def measure_simple(self):
-        print("now I am measuring one simple image")
+       self.f = open(self.autolog, "a+")
+       lines = np.loadtxt(self.autolog, comments="#", delimiter="\t", unpack=False, usecols=(0,))
+       if lines.size > 0:
+           try:
+               start_image=lines[-1,0] +1
+           except:
+               start_image=lines[-1] +1
+           print("The last image had index " + str(int(start_image-1)))
+       else:
+           start_image = 0
+    
+       im = self.take_image(int(self.ent_avgs.get()))
+       self.save_image(im, start_image)
+       self.plot_MCP(im)
+       self.f.close()
+    # def measure_simple(self):
+    #     print("now I am measuring one simple image")
         
-        name = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' + 'auto-log.txt'
-        if exists(name):
-            print("a log file already exists!")
-            lines = np.loadtxt(name, comments="#", delimiter="\t", unpack=False)
-            f= open(name,"a+")
-            print(lines.shape)
-            #last_line = f.readlines()[-1]
-            try:
-                start_image=lines[-1,0] +1
-            except:
-                start_image=lines[-1] +1
-            print("The last image had index " + str(int(start_image-1)))
-        else:
-            f= open(name,"a+")
-            start_image = 0
+    #     name = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' + 'auto-log.txt'
+    #     if exists(name):
+    #         print("a log file already exists!")
+    #         lines = np.loadtxt(name, comments="#", delimiter="\t", unpack=False)
+    #         f= open(name,"a+")
+    #         print(lines.shape)
+    #         #last_line = f.readlines()[-1]
+    #         try:
+    #             start_image=lines[-1,0] +1
+    #         except:
+    #             start_image=lines[-1] +1
+    #         print("The last image had index " + str(int(start_image-1)))
+    #     else:
+    #         f= open(name,"a+")
+    #         start_image = 0
         
-        f.write("# simple measurement, "+ " avgs: " + str(self.ent_avgs.get()) +str(self.ent_comment.get())+"\n")
+    #     f.write("# simple measurement, "+ " avgs: " + str(self.ent_avgs.get()) +str(self.ent_comment.get())+"\n")
         
 
         
-        with Vimba.get_instance() as vimba:
-          cams = vimba.get_all_cameras()
-          image = np.zeros([1000, 1600])
-          start_time = time.time()
+        # with Vimba.get_instance() as vimba:
+        #   cams = vimba.get_all_cameras()
+        #   image = np.zeros([1000, 1600])
+        #   start_time = time.time()
           
-          phasefilename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' +str(int(start_image))+ '-' + 'phase_values.txt'
-          global g
-          g = open(phasefilename,"a+")
-          global meas_has_started
-          meas_has_started = True
+        #   phasefilename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' +str(int(start_image))+ '-' + 'phase_values.txt'
+        #   global g
+        #   g = open(phasefilename,"a+")
+        #   global meas_has_started
+        #   meas_has_started = True
           
-          nr =  int(self.ent_avgs.get())
-          with cams[0] as cam:
-              for frame in cam.get_frame_generator(limit = int(self.ent_avgs.get())):
-                  frame = cam.get_frame()
-                  frame.convert_pixel_format(PixelFormat.Mono8)
-                  img = frame.as_opencv_image()
-                  img = np.squeeze(frame.as_opencv_image())
-                  numpy_image = img
-                  image = image + numpy_image
-              image = image/nr
-              end_time = time.time()
-              elapsed_time = end_time - start_time
-              filename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' + str(int(start_image)) + '.bmp'
-              cv2.imwrite(filename, image)
-              meas_has_started=False
-              print("simple image taken, Elapsed time: ", round(elapsed_time,2)) 
-              f.write(str(int(start_image))+ "\t"+ str(0) + "\n")
-              f.close()
-              self.plot_MCP(image)
-              g.close()
-        return image
+        #   nr =  int(self.ent_avgs.get())
+        #   with cams[0] as cam:
+        #       for frame in cam.get_frame_generator(limit = int(self.ent_avgs.get())):
+        #           frame = cam.get_frame()
+        #           frame.convert_pixel_format(PixelFormat.Mono8)
+        #           img = frame.as_opencv_image()
+        #           img = np.squeeze(frame.as_opencv_image())
+        #           numpy_image = img
+        #           image = image + numpy_image
+        #       image = image/nr
+        #       end_time = time.time()
+        #       elapsed_time = end_time - start_time
+        #       filename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' + str(int(start_image)) + '.bmp'
+        #       cv2.imwrite(filename, image)
+        #       meas_has_started=False
+        #       print("simple image taken, Elapsed time: ", round(elapsed_time,2)) 
+        #       f.write(str(int(start_image))+ "\t"+ str(0) + "\n")
+        #       f.close()
+        #       self.plot_MCP(image)
+        #       g.close()
+        # return image
 
     def press_callback(self, key): 
         if key == keyboard.Key.esc:
@@ -751,8 +1186,9 @@ class feedbacker(object):
                 self.stop_acquire = 0
                 break
             if meas_has_started:
+                self.d_phase.append(self.im_angl)
                 #print("phase saving should be activated")
-                g.write(str(self.im_angl)+"\n")
+                #g.write(str(self.im_angl)+"\n")
             self.plot_fft_blit()
 
 
@@ -929,6 +1365,7 @@ class feedbacker(object):
         stop_pid = True
 
     def on_close(self):
+        #self.f.close()
         plt.close(self.figr)
         plt.close(self.figp)
         if self.CAMERA:
@@ -937,4 +1374,5 @@ class feedbacker(object):
             self.spec_deactivate()
             avs.AVS_Done()
         self.win.destroy()
+        apt._cleanup()
         self.parent.fbck_win = None
