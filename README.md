@@ -8,6 +8,8 @@ These can be found and changed in the file "settings.py".
 
 ## Structure
 
+"andor_driver" contains drivers to communicate with the XUV camera.
+
 "avaspec_driver" contains drivers to communicate with the Aventes Spectrometer.
 
 "background" contains the wavefront correction images for the SLMs provided by their manufacturer.
@@ -18,8 +20,9 @@ These can be found and changed in the file "settings.py".
 
 "model" contains the scripts used for data calculation.
 
+"thorlabs_apt" contains drivers to communicate with the thorlabs stage.
+
 "view" contains the scripts used for data and GUI displaying.
 
-## Documentation
+"vimba" contains drivers to communicate with the MCP camera.
 
-A venir
