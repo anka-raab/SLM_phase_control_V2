@@ -8,7 +8,7 @@ from matplotlib.widgets import RectangleSelector
 import numpy as np
 from tkinter import filedialog
 
-pll.par["devices/dlls/andor_sdk2"] = "andor_driver/"
+pll.par["devices/dlls/andor_sdk2"] = "drivers/andor_driver/"
 print('dll trouvé')
 
 

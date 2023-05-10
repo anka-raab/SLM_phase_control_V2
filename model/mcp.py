@@ -9,10 +9,8 @@ import matplotlib
 from PIL import Image, ImageTk
 
 import time
-import sys
 
-import cv2
-from vimba import *
+from drivers.vimba_driver import *
 
 matplotlib.use("TkAgg")
 

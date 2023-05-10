@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter.simpledialog import askstring
 from tkinter import ttk
-import gxipy as gx
+from drivers import gxipy_driver as gx
 from PIL import Image, ImageTk
 import time
 import threading

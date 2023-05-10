@@ -12,7 +12,7 @@ from tkinter import ttk
 import tkinter.messagebox as tkMbox
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 
-import santec_driver._slm_py as slm
+import drivers.santec_driver._slm_py as slm
 from model import phase_settings, mcp
 from model.settings import slm_size, bit_depth
 from views import preview_window, questionbox, camera_control, andor_xuv_camera
@@ -27,7 +27,7 @@ class SLMControl:
 
     def __init__(self, parent):
         """
-        Initializes the MainScreen object with its attributes.
+        Initializes the SLMControl object with its attributes.
 
         Parameters
         ----------

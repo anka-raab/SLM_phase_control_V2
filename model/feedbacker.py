@@ -1,9 +1,9 @@
 from model.settings import slm_size, bit_depth
-import avaspec_driver._avs_py as avs
-import gxipy as gx
+import drivers.avaspec_driver._avs_py as avs
+from drivers import gxipy_driver as gx
 from views import draw_polygon
-from thorlabs_apt import core as apt
-from vimba import *
+from drivers.thorlabs_apt_driver import core as apt
+from drivers.vimba_driver import *
 import tkinter as tk
 from tkinter import ttk
 import numpy as np
@@ -1072,8 +1072,8 @@ class Feedbacker(object):
     #     for ind,phi in enumerate(self.phis):
     #         self.strvar_setp.set(phi)
     #         self.set_setpoint()
-    #         with Vimba.get_instance() as vimba:
-    #             cams = vimba.get_all_cameras()
+    #         with Vimba.get_instance() as vimba_driver:
+    #             cams = vimba_driver.get_all_cameras()
     #             image = np.zeros([1000, 1600])
     #             start_time = time.time()
     #             time.sleep(0.5)
@@ -1158,8 +1158,8 @@ class Feedbacker(object):
 
     #     f.write("# simple measurement, "+ " avgs: " + str(self.ent_avgs.get()) +str(self.ent_comment.get())+"\n")
 
-    # with Vimba.get_instance() as vimba:
-    #   cams = vimba.get_all_cameras()
+    # with Vimba.get_instance() as vimba_driver:
+    #   cams = vimba_driver.get_all_cameras()
     #   image = np.zeros([1000, 1600])
     #   start_time = time.time()
 
