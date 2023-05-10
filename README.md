@@ -23,7 +23,7 @@ To run the program, execute "controlPhaseSLM.py", it will load all the other fil
 
 - "vimba_driver" contains drivers to communicate with the MCP camera.
 
-"ressources" contains diverses images and references phase map.
+"ressources" contains diverse images and references phase map.
 
 - "background" contains the wavefront correction images for the SLMs provided by their manufacturer.
 
