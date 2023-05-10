@@ -7,65 +7,85 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.widgets import RectangleSelector
 import numpy as np
 from tkinter import filedialog
+
 pll.par["devices/dlls/andor_sdk2"] = "andor_driver/"
-print('trouvé')
+print('dll trouvé')
 
 
-class AndorCameraViewer:
-    def __init__(self, master):
-        self.master = master
-        self.master.title('Andor Camera')
+class AndorCameraViewer(object):
+    def __init__(self, parent):
+        self.cam = None
+        self.parent = parent
+        self.win = tk.Toplevel()
+
+        title = 'SLM Phase Control - Andor camera'
+
+        self.win.title(title)
+        self.win.protocol("WM_DELETE_WINDOW", self.on_close)
 
         # Set up the Andor camera
         self.cam = Andor.AndorSDK2Camera(fan_mode="full")
+        print('Opening the XUV camera')
         self.cam.set_exposure(50E-3)
         self.cam.set_acquisition_mode('cont')
         self.cam.setup_shutter("open")
         self.cam.start_acquisition()
+        print('XUV camera ready')
 
         # Create a main frame to group all other frames
-        self.main_frame = tk.Frame(self.master)
+        self.main_frame = tk.Frame(self.win)
         self.main_frame.grid(row=0, column=0)
 
         # Create a frame for the camera display
         self.plot_frame = tk.LabelFrame(self.main_frame, text="Camera display")
-        self.fig, self.ax = plt.subplots(figsize=(3, 3))
+        self.fig, self.ax = plt.subplots(figsize=(4.5, 4.5))
         self.ax.set_xlabel('Pixels')
         self.ax.set_ylabel('Pixels')
         self.img = self.ax.imshow(self.cam.read_oldest_image())
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.plot_frame)
         self.canvas.get_tk_widget().grid(row=1, column=1, padx=0, pady=0, sticky=tk.NSEW)
         self.selector = RectangleSelector(self.ax, self.on_select, useblit=True, button=[1])
+        self.fig.tight_layout()
 
         # Create a frame for the sum plot
         self.sum_plot_frame = tk.LabelFrame(self.main_frame, text="Sum over columns")
-        self.sum_fig, self.sum_ax = plt.subplots(figsize=(4, 2))
+        self.sum_fig, self.sum_ax = plt.subplots(figsize=(4.5, 2.5))
         self.sum_ax.set_xlabel('Pixels')
         self.sum_ax.set_ylabel('Counts')
         self.sum_canvas = FigureCanvasTkAgg(self.sum_fig, master=self.sum_plot_frame)
         self.sum_canvas.get_tk_widget().grid(row=0, column=1, padx=0, pady=0, sticky=tk.NSEW)
+        self.sum_fig.tight_layout()
 
-        # Create a frame for general settings
+        # Create a frame for general control
         self.settings_frame = tk.Label(self.main_frame)
         self.live_button = tk.Button(master=self.settings_frame, text="Live", command=self.start)
         self.live_button.grid(row=0, column=0, padx=5, pady=5)
         self.stop_button = tk.Button(master=self.settings_frame, text="Stop", command=self.stop)
         self.stop_button.grid(row=0, column=1, padx=5, pady=5)
-        self.exit_button = tk.Button(master=self.settings_frame, text="Exit", command=self.exit)
-        self.exit_button.grid(row=0, column=2, padx=5, pady=5)
         self.save_button = tk.Button(master=self.settings_frame, text="Save image", command=self.save_image)
-        self.save_button.grid(row=0, column=3, padx=5, pady=5)
+        self.save_button.grid(row=0, column=2, padx=5, pady=5)
+        self.exit_button = tk.Button(master=self.settings_frame, text="EXIT", command=self.on_close)
+        self.exit_button.grid(row=0, column=3, padx=5, pady=5)
 
-        # Create a frame for the exposure time setting
-        self.exposure_frame = tk.LabelFrame(self.main_frame, text="Camera settings")
-        self.exposure_label = tk.Label(master=self.exposure_frame, text="Exposure time (s)")
+        # Create a frame for the exposure time setting and the gain
+        self.camera_settings_frame = tk.LabelFrame(self.main_frame, text="Camera settings")
+        self.exposure_label = tk.Label(master=self.camera_settings_frame, text="Exposure time (s)")
         self.exposure_label.grid(row=0, column=0, padx=5, pady=5)
         self.exposure_time = 50E-3
         self.exposure_time_var = tk.StringVar(value=str(self.exposure_time))
-        self.exposure_entry = tk.Entry(master=self.exposure_frame, width=5, textvariable=self.exposure_time_var)
+        self.exposure_entry = tk.Entry(master=self.camera_settings_frame, width=5, textvariable=self.exposure_time_var)
         self.exposure_entry.grid(row=0, column=1, padx=5, pady=5)
-        self.exposure_button = tk.Button(master=self.exposure_frame, text="Set exposure time", command=self.set_exposure_time)
+        self.exposure_button = tk.Button(master=self.camera_settings_frame, text="Set exposure time",
+                                         command=self.set_exposure_time)
         self.exposure_button.grid(row=0, column=2, padx=5, pady=5)
+        self.gain_label = tk.Label(master=self.camera_settings_frame, text="EMCCD Gain")
+        self.gain_label.grid(row=1, column=0, padx=5, pady=5)
+        self.gain = self.cam.get_EMCCD_gain()[0]
+        self.gain_var = tk.StringVar(value=str(self.gain))
+        self.gain_entry = tk.Entry(master=self.camera_settings_frame, width=5, textvariable=self.gain_var)
+        self.gain_entry.grid(row=1, column=1, padx=5, pady=5)
+        self.gain_button = tk.Button(master=self.camera_settings_frame, text="Set gain", command=self.set_gain)
+        self.gain_button.grid(row=1, column=2, padx=5, pady=5)
 
         # Create a frame for the ROI of the image
         self.roi_frame = tk.LabelFrame(self.main_frame, text="Range of interest - XUV camera")
@@ -97,7 +117,8 @@ class AndorCameraViewer:
 
         # Create a frame for the summation settings
         self.sum_frame = tk.LabelFrame(self.main_frame, text="Range of interest - Summation plot")
-        self.sum_checkbutton = tk.Checkbutton(master=self.sum_frame, text="Show sum plot", variable=tk.BooleanVar(),
+        self.sum_checkbutton = tk.Checkbutton(master=self.sum_frame, text="Show sum plot",
+                                              variable=tk.BooleanVar(),
                                               command=self.toggle_sum_plot)
         self.sum_checkbutton.grid(row=0, column=0, padx=5, pady=5)
         self.sum_start_var = tk.StringVar(value=str(0))
@@ -119,7 +140,8 @@ class AndorCameraViewer:
         # Create a frame for the averaging settings
         self.average_frame = tk.LabelFrame(self.main_frame, text="Averaging settings")
         self.avg_num = 10
-        self.avg_checkbutton = tk.Checkbutton(master=self.average_frame, text="Enable averaging", variable=tk.BooleanVar(), command=self.toggle_avg_mode)
+        self.avg_checkbutton = tk.Checkbutton(master=self.average_frame, text="Enable averaging",
+                                              variable=tk.BooleanVar(), command=self.toggle_avg_mode)
         self.avg_checkbutton.grid(row=0, column=0, padx=5, pady=5)
         self.avg_label = tk.Label(master=self.average_frame, text="Number of averages")
         self.avg_label.grid(row=1, column=0, padx=5, pady=5)
@@ -129,15 +151,38 @@ class AndorCameraViewer:
         self.set_avg_button = tk.Button(master=self.average_frame, text="Set average", command=self.set_avg_num)
         self.set_avg_button.grid(row=0, column=1, padx=5, pady=5)
 
-        # Add all frames to the main frame
-        self.plot_frame.grid(row=0, column=0)
-        self.sum_plot_frame.grid(row=1, column=0)
-        self.settings_frame.grid(row=3, column=0)
+        # Create a frame for the cooling settings
+        self.cooling_frame = tk.LabelFrame(self.main_frame, text="Cooling status")
+        self.temp_label = tk.Label(master=self.cooling_frame, text="Current temperature")
+        self.temp_label.grid(row=0, column=0, padx=5, pady=5)
+        self.camera_temp = self.cam.get_temperature()
+        self.camera_temp_var = tk.StringVar(value=str(self.camera_temp))
+        self.temp_value_label = tk.Label(master=self.cooling_frame, text="")
+        self.temp_value_label.grid(row=0, column=1, padx=5, pady=5)
 
-        self.roi_frame.grid(row=0, column=1)
-        self.sum_frame.grid(row=1, column=1)
-        self.exposure_frame.grid(row=2, column=1)
-        self.average_frame.grid(row=3, column=1)
+        self.temp_setpoint_label = tk.Label(master=self.cooling_frame, text="Current setpoint")
+        self.temp_setpoint_label.grid(row=1, column=0, padx=5, pady=5)
+        self.camera_temp_setpoint = self.cam.get_temperature_setpoint()
+        self.camera_temp_setpoint_var = tk.StringVar(value=str(self.camera_temp_setpoint))
+        self.temp_value_setpoint_label = tk.Label(master=self.cooling_frame, text=self.camera_temp_setpoint_var)
+        self.temp_value_setpoint_label.grid(row=1, column=1, padx=5, pady=5)
+
+        self.update_temperature()
+
+        # Add all frames to the main frame
+        self.plot_frame.grid(row=0, column=0, columnspan=2, rowspan=6)
+        self.sum_plot_frame.grid(row=6, column=0, columnspan=2, sticky="nsew")
+        self.settings_frame.grid(row=0, column=2, sticky="ew")
+        self.roi_frame.grid(row=1, column=2, sticky="ew")
+        self.sum_frame.grid(row=2, column=2, sticky="ew")
+        self.camera_settings_frame.grid(row=3, column=2, sticky="ew")
+        self.average_frame.grid(row=4, column=2, sticky="ew")
+        self.cooling_frame.grid(row=5, column=2, sticky="ew")
+
+        # Add a status bar at the bottom
+        self.status_bar = ttk.Label(self.win, text="", anchor=tk.W)
+        self.status_bar.grid(row=1, column=0, sticky="ew")
+        self.status_bar.config(text=str(self.cam.get_device_info()))
 
         self.sum_start_index = 0
         self.sum_end_index = self.cam.get_detector_size()[1]
@@ -151,35 +196,58 @@ class AndorCameraViewer:
             self.cam.wait_for_frame()
             frame = self.cam.read_oldest_image()
 
-            # Average over a chosen number of frames
-            if self.average_mode:
-                frame_sum = frame
-                for i in range(self.avg_num - 1):
-                    print(f'{i + 1} frames on {self.avg_num}')
-                    self.cam.wait_for_frame()
-                    frame_sum += self.cam.read_oldest_image()
-                frame = frame_sum / self.avg_num
+            try:
+                # Attempt to update the first plot
+                self.img.set_data(frame)
 
-            # Update the first plot
-            self.img.set_data(frame)
+                if self.average_mode:
+                    frame_sum = frame
+                    for i in range(self.avg_num - 1):
+                        print(f'{i + 1} frames on {self.avg_num}')
+                        self.cam.wait_for_frame()
+                        frame_sum += self.cam.read_oldest_image()
+                    frame = frame_sum / self.avg_num
 
-            if self.ax.images[-1].colorbar is not None:
-                self.ax.images[-1].colorbar.remove()
-                self.ax.images[-1].colorbar = None
+                if self.ax.images[-1].colorbar is not None:
+                    self.ax.images[-1].colorbar.remove()
+                    self.ax.images[-1].colorbar = None
 
-            # Update the second plot if the checkbox is checked
-            if self.show_sum_plot:
-                sums = np.sum(frame[self.sum_start_index:self.sum_end_index, :], axis=0)
-                self.sum_line.set_data(np.arange(len(sums)), sums)
-                self.sum_ax.relim()
-                self.sum_ax.autoscale_view()
+                # Update the second plot if the checkbox is checked
+                if self.show_sum_plot:
+                    sums = np.sum(frame[self.sum_start_index:self.sum_end_index, :], axis=0)
+                    self.sum_line.set_data(np.arange(len(sums)), sums)
+                    self.sum_ax.relim()
+                    self.sum_ax.autoscale_view()
 
-            self.fig.colorbar(self.img)
-            self.canvas.draw()
-            self.sum_canvas.draw()
+                    for line in self.ax.lines:
+                        if line.get_color() == 'red':
+                            line.remove()
 
-            self.master.update_idletasks()
-            self.master.after(150, self.update_plot)
+                    self.ax.axhline(self.sum_start_index, color='red')
+                    self.ax.axhline(self.sum_end_index, color='red')
+
+                # self.fig.colorbar(self.img)
+                self.canvas.draw()
+                self.sum_canvas.draw()
+
+            except TypeError:
+                # If a TypeError is raised, print an error message and continue with the loop
+                print("Caught TypeError: skipping frame")
+                pass
+
+            # Schedule the function to run again after a delay
+            self.win.update_idletasks()
+            self.win.after(200, self.update_plot)
+
+    def update_temperature(self):
+        # Get the current temperature from the camera
+        self.camera_temp = self.cam.get_temperature()
+
+        # Update the label with the current temperature
+        self.temp_value_label.config(text="{:.2f} °C".format(self.camera_temp))
+
+        # Schedule the next update in 5 seconds
+        self.win.after(5000, self.update_temperature)
 
     def save_image(self):
         filename = filedialog.asksaveasfilename(defaultextension='.bmp')
@@ -222,7 +290,14 @@ class AndorCameraViewer:
         self.cam.stop_acquisition()
         self.cam.set_exposure(self.exposure_entry.get())
         self.cam.start_acquisition()
-        print('Exposure time updated')
+        print(f'Exposure time updated, new value = {self.cam.get_exposure()}')
+
+    def set_gain(self):
+        self.cam.stop_acquisition()
+        print(f'{self.cam.get_EMCCD_gain()}')
+        self.cam.set_EMCCD_gain(self.gain_entry.get())
+        self.cam.start_acquisition()
+        print(f'EMCCD gain updated, new value = {self.cam.get_EMCCD_gain()}')
 
     def set_roi(self):
         x_start = int(self.roi_x_start_var.get())
@@ -246,6 +321,7 @@ class AndorCameraViewer:
         self.ax.set_ylim(y_lim)
 
         self.set_roi()
+        self.next_frame()
         print('ROI set to default')
 
     def on_select(self, e_click, e_release):
@@ -280,14 +356,14 @@ class AndorCameraViewer:
         self.img.set_data(frame)
         self.canvas.draw()
 
-    def exit(self):
-        self.cam.stop_acquisition()
-        self.cam.setup_shutter("closed")
-        self.cam.close()
-        self.master.destroy()
-        print('Closing the GUI')
-
-
-root = tk.Tk()
-viewer = AndorCameraViewer(root)
-root.mainloop()
+    def on_close(self):
+        if self.cam is None:
+            self.win.destroy()
+            self.parent.andor_camera = None
+        else:
+            self.cam.stop_acquisition()
+            self.cam.setup_shutter("closed")
+            self.cam.close()
+            self.win.destroy()
+            self.parent.andor_camera = None
+        print('Closing the XUV camera')
