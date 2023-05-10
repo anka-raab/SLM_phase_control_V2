@@ -13,7 +13,7 @@ import tkinter.messagebox as tkMbox
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 
 import santec_driver._slm_py as slm
-from model import phase_settings, feedbacker, mcp
+from model import phase_settings, mcp
 from model.settings import slm_size, bit_depth
 from views import preview_window, questionbox, camera_control, andor_xuv_camera
 
@@ -24,6 +24,7 @@ class SLMControl:
     """
     A class for controlling the SLM.
     """
+
     def __init__(self, parent):
         """
         Initializes the MainScreen object with its attributes.
@@ -45,6 +46,7 @@ class SLMControl:
         self.pub_win = None
         self.prev_win = None
         self.feedback_win = None
+        self.andor_camera = None
         self.camera_win = None
         self.mcp_win = None
         self.phase_map = np.zeros(slm_size)
@@ -108,6 +110,7 @@ class SLMControl:
         but_prev.grid(row=0, column=4, padx=5, pady=5)
         but_pub.grid(row=0, column=5, padx=5, pady=5)
         but_exit.grid(row=0, column=6, padx=5, pady=5)
+
         # but_clean_settings.grid(row=0, column=6, padx=5, pady=5)
 
         # binding keys
@@ -215,7 +218,7 @@ class SLMControl:
             q_str2 = 'Do you want to use a camera with spatial fringes or a spectrometer with spectral fringes?'
             q_str = q_str1 + '\n' + q_str2
             questionbox.PopupQuestion(self.open_feedback_window, 'Choose feedback method',
-                                       q_str, 'Open Camera', 'Open Spectrometer')
+                                      q_str, 'Open Camera', 'Open Spectrometer')
 
     def open_feedback_window(self, answer):
         """
@@ -230,7 +233,9 @@ class SLMControl:
         -------
         None
         """
-        self.feedback_win = feedbacker.Feedbacker(self, slm, answer)
+        # TODO - change to feedback window when on dlab computer
+        self.camera_win = camera_control.CameraControl(self)
+        #self.feedback_win = feedbacker.Feedbacker(self)
 
     def open_camera(self):
         """
@@ -250,7 +255,7 @@ class SLMControl:
         -------
         None
         """
-        self.camera_win = andor_xuv_camera.AndorCameraViewer(self)
+        self.andor_camera = andor_xuv_camera.AndorCameraViewer(self)
 
     def open_prev(self):
         """
@@ -394,8 +399,8 @@ class SLMControl:
             self.phase_refs.append(phase_settings.new_type(self.tabs[ind],
                                                            typ))
             self.box_ = ttk.Checkbutton(frm_box, text=typ,
-                                       variable=self.vars[ind],
-                                       onvalue=1, offvalue=0)
+                                        variable=self.vars[ind],
+                                        onvalue=1, offvalue=0)
             self.box_.grid(row=ind, sticky='w')
 
     def get_phase(self):
@@ -501,7 +506,7 @@ class SLMControl:
         lbl_val = ttk.Label(self.so_frm, text='Value (strt:stop:num)')
         lbl_actf = ttk.Label(frm_file, text='Active file:')
         self.lbl_file = ttk.Label(frm_file, text='', wraplength=230,
-                                 justify='left', foreground='gray')
+                                  justify='left', foreground='gray')
         lbl_delay = ttk.Label(
             self.so_frm, text='Delay between each phase [s]:')
         self.lbl_time = ttk.Label(self.so_frm, text='0')
@@ -513,12 +518,12 @@ class SLMControl:
         vcmd = (self.frm_side.register(self.callback))
         self.strvar_val = tk.StringVar()
         ent_val = ttk.Entry(self.so_frm, width=10, validate='all',
-                           validatecommand=(vcmd, '%d', '%P', '%S'),
-                           textvariable=self.strvar_val)
+                            validatecommand=(vcmd, '%d', '%P', '%S'),
+                            textvariable=self.strvar_val)
         self.strvar_delay = tk.StringVar()
         ent_delay = ttk.Entry(self.so_frm, width=5, validate='all',
-                             validatecommand=(vcmd, '%d', '%P', '%S'),
-                             textvariable=self.strvar_delay)
+                              validatecommand=(vcmd, '%d', '%P', '%S'),
+                              textvariable=self.strvar_delay)
 
         # creating buttons
         self.but_crt = ttk.Button(
@@ -786,7 +791,7 @@ class SLMControl:
         """
         self.ax.clear()
         self.ax.imshow(phase % (bit_depth + 1), cmap='RdBu',
-                        interpolation='None')
+                       interpolation='None')
         self.img.draw()
 
     def exit_prog(self):
@@ -804,6 +809,11 @@ class SLMControl:
         self.pub_win_closed()
         if self.feedback_win is not None:
             self.feedback_win.on_close()
+
+        self.prev_win = None
+        self.andor_camera = None
+        self.camera_win = None
+        self.mcp_win = None
         self.main_win.destroy()
 
     # Diagnostics
