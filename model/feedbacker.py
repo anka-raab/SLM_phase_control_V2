@@ -24,10 +24,22 @@ matplotlib.use("TkAgg")
 
 class Feedbacker(object):
     """
-    Works back and forth with publish_window
+    A class for controlling the overlap between the green and the red, using spectral fringes or spatial fringes
     """
 
     def __init__(self, parent, slm_lib, CAMERA):
+        """
+        Initializes the Feedbacker object with its attributes.
+
+        Parameters
+        ----------
+        parent : tkinter.Tk
+            The tkinter parent window.
+
+        Returns
+        -------
+        None
+        """
         self.CAMERA = CAMERA  # True for Camera Mode, False for Spectrometer Mode
         self.parent = parent
         self.slm_lib = slm_lib
@@ -610,6 +622,18 @@ class Feedbacker(object):
             self.active_spec_handle = None
 
     def init_WPR(self):
+        """
+        Initializes the red waveplate motor object.
+
+        Raises
+        ------
+        Exception
+            If the motor fails to initialize.
+
+        Returns
+        -------
+        None
+        """
         try:
             self.WPR = apt.Motor(int(self.ent_WPR_Nr.get()))
             self.but_WPR_Ini.config(fg='green')
@@ -618,6 +642,18 @@ class Feedbacker(object):
             print("not able to initalize motor")
 
     def read_WPR(self):
+        """
+        Reads the current position of the red waveplate motor.
+
+        Raises
+        ------
+        Exception
+            If the position cannot be read.
+
+        Returns
+        -------
+        None
+        """
         try:
             pos = self.WPR.position
             self.strvar_WPR_is.set(pos)
@@ -625,6 +661,18 @@ class Feedbacker(object):
             print("Position cound not be read")
 
     def move_WPR(self):
+        """
+        Moves the red waveplate motor to the desired position.
+
+        Raises
+        ------
+        Exception
+            If the motor fails to move to the desired position.
+
+        Returns
+        -------
+        None
+        """
         try:
             pos = float(self.strvar_WPR_should.get())
             self.WPR.move_to(pos, True)
@@ -633,6 +681,18 @@ class Feedbacker(object):
             print("Moving the stage failed :(")
 
     def init_WPG(self):
+        """
+        Initializes the green waveplate motor object.
+
+        Raises
+        ------
+        Exception
+            If the motor fails to initialize.
+
+        Returns
+        -------
+        None
+        """
         try:
             self.WPG = apt.Motor(int(self.ent_WPG_Nr.get()))
             self.but_WPG_Ini.config(fg='green')
@@ -641,6 +701,18 @@ class Feedbacker(object):
             print("not able to initalize motor")
 
     def read_WPG(self):
+        """
+        Reads the current position of the green waveplate motor.
+
+        Raises
+        ------
+        Exception
+            If the position cannot be read.
+
+        Returns
+        -------
+        None
+        """
         try:
             pos = self.WPG.position
             self.strvar_WPG_is.set(pos)
@@ -648,6 +720,18 @@ class Feedbacker(object):
             print("Position cound not be read")
 
     def move_WPG(self):
+        """
+        Moves the green waveplate motor to the desired position.
+
+        Raises
+        ------
+        Exception
+            If the motor fails to move to the desired position.
+
+        Returns
+        -------
+        None
+        """
         try:
             pos = float(self.strvar_WPG_should.get())
             self.WPG.move_to(pos, True)
@@ -656,6 +740,18 @@ class Feedbacker(object):
             print("Moving the stage failed :(")
 
     def init_Delay(self):
+        """
+        Initializes the Delay motor object.
+
+        Raises
+        ------
+        Exception
+            If the motor fails to initialize.
+
+        Returns
+        -------
+        None
+        """
         try:
             self.Delay = apt.Motor(int(self.ent_Delay_Nr.get()))
             self.but_Delay_Ini.config(fg='green')
@@ -664,6 +760,18 @@ class Feedbacker(object):
             print("not able to initalize motor")
 
     def read_Delay(self):
+        """
+        Reads the current position of the Delay motor.
+
+        Raises
+        ------
+        Exception
+            If the position cannot be read.
+
+        Returns
+        -------
+        None
+        """
         try:
             pos = self.Delay.position
             self.strvar_Delay_is.set(pos)
@@ -671,6 +779,18 @@ class Feedbacker(object):
             print("Position cound not be read")
 
     def move_Delay(self):
+        """
+        Moves the Delay motor to the desired position.
+
+        Raises
+        ------
+        Exception
+            If the motor fails to move to the desired position.
+
+        Returns
+        -------
+        None
+        """
         try:
             pos = float(self.strvar_Delay_should.get())
             self.Delay.move_to(pos, True)
@@ -681,7 +801,27 @@ class Feedbacker(object):
     # def scan(self):
 
     def take_image(self, avgs, record_phase=True):
+        """
+        Takes an image from the camera.
 
+        This method takes an image from the camera using the specified number of averages,
+        and returns the captured image. If `record_phase` is `True`, it records the phase
+        values as well.
+
+
+        Parameters
+        ----------
+        avgs : int
+            The number of images to average over.
+        record_phase : bool, optional
+            Indicates whether or not to record the phase values. The default is True.
+
+        Returns
+        -------
+        numpy.ndarray
+            The captured image.
+
+        """
         # if record_phase:
         #    phasefilename = 'C:/data/'+ str(date.today())+'/'+str(date.today()) + '-' +str(int(image_nr))+ '-' + 'phase_values.txt'
         #    global g
@@ -711,6 +851,23 @@ class Feedbacker(object):
         return image
 
     def save_image(self, image, image_nr, image_info="Test"):
+        """
+        Saves the captured image to a file.
+
+        Parameters
+        ----------
+        image : numpy.ndarray
+            The captured image.
+        image_nr : int
+            The number of the image.
+        image_info : str, optional
+            Additional information about the image. The default is "Test".
+
+        Returns
+        -------
+        int
+            The status of the save operation (1 for success, 0 for failure).
+        """
         self.f = open(self.autolog, "a+")
         filename = 'C:/data/' + str(date.today()) + '/' + str(date.today()) + '-' + str(image_nr) + '.bmp'
         cv2.imwrite(filename, image)
@@ -719,6 +876,13 @@ class Feedbacker(object):
         return 1
 
     def enabl_mcp(self):
+        """
+        Enables the MCP measurement.
+
+        Returns
+        -------
+        None
+        """
         global stop_mcp
         stop_mcp = False
         self.mcp_thread = threading.Thread(target=self.measure)
@@ -726,6 +890,13 @@ class Feedbacker(object):
         self.mcp_thread.start()
 
     def enabl_mcp_simple(self):
+        """
+        Enables the simple MCP measurement.
+
+        Returns
+        -------
+        None
+        """
         global stop_mcp
         stop_mcp = False
         self.mcp_thread = threading.Thread(target=self.measure_simple)
@@ -733,6 +904,23 @@ class Feedbacker(object):
         self.mcp_thread.start()
 
     def get_start_image(self):
+        """
+        Gets the index of the starting image.
+
+        This method retrieves the index of the starting image from the autolog file.
+        It reads the autolog file to get the latest image index, increments it by one,
+        and returns the result as the starting index for the next image.
+
+        Returns
+        -------
+        int
+            The index of the starting image.
+
+        Raises
+        ------
+        Exception
+            If there is an error in retrieving the starting image index.
+        """
         self.f = open(self.autolog, "a+")
         lines = np.loadtxt(self.autolog, comments="#", delimiter="\t", unpack=False, usecols=(0,))
         if lines.size > 0:
@@ -747,6 +935,16 @@ class Feedbacker(object):
         return start_image
 
     def phase_scan(self):
+        """
+        Scans the phase and captures images.
+
+        The scan parameters are specified in the GUI.
+        The captured images are saved to a file and the MCP signal is plotted.
+
+        Returns
+        -------
+        None
+        """
         start_image = self.get_start_image()
         print("Start image: " + str(start_image))
         self.phis = np.linspace(float(self.ent_from.get()), float(self.ent_to.get()), int(self.ent_steps.get()))
@@ -770,6 +968,18 @@ class Feedbacker(object):
             print("Imagenr ", (start_image + ind), " Phase: ", round(phi, 2), " Elapsed time: ", round(elapsed_time, 2))
 
     def measure(self):
+        """
+        Performs a measurement.
+
+        If `var_phasescan` and `var_wpgscan` are both 1, performs a phase scan for each green power value specified in the GUI.
+        Otherwise, if `var_phasescan` is 1, performs a phase scan.
+        The scan parameters are specified in the GUI.
+        The captured images are saved to a file and the MCP signal is plotted.
+
+        Returns
+        -------
+        None
+        """
         self.but_meas_scan.config(fg='red')
 
         if self.var_phasescan.get() == 1 and self.var_wpgscan.get() == 1:
@@ -898,6 +1108,19 @@ class Feedbacker(object):
     #     return image
 
     def measure_simple(self):
+        """
+        Performs a simple measurement.
+
+        This method performs a simple measurement by capturing images and plotting the MCP signal.
+        It retrieves the index of the starting image from the autolog file using the `get_start_image()`
+        method, captures the image using the `take_image()` method, saves the image to a file using
+        the `save_image()` method, plots the MCP signal using the `plot_MCP()` method, and then closes
+        the file.
+
+        Returns
+        -------
+        None
+        """
         self.f = open(self.autolog, "a+")
         lines = np.loadtxt(self.autolog, comments="#", delimiter="\t", unpack=False, usecols=(0,))
         if lines.size > 0:
@@ -969,6 +1192,16 @@ class Feedbacker(object):
     # return image
 
     def feedback(self):
+        """
+        Displays a phase map on the SLM.
+
+        The phase map is calculated based on the `phase_map` attribute of the parent object and the flat phase value specified in the GUI.
+        The phase map is then displayed on the SLM.
+
+        Returns
+        -------
+        None
+        """
         if self.ent_flat.get() != '':
             phi = float(self.ent_flat.get())
         else:
@@ -980,6 +1213,16 @@ class Feedbacker(object):
                                    slm_size[1], slm_size[0])
 
     def init_cam(self):
+        """
+        Initializes the camera.
+
+        Creates a device manager, opens the first available device, sets the exposure and gain, and sets the trigger mode and trigger source.
+        Then starts data acquisition and calls `acq_mono` and `cam_on_close` methods.
+
+        Returns
+        -------
+        None
+        """
         print("")
         print("Initializing......")
         print("")
@@ -1014,10 +1257,24 @@ class Feedbacker(object):
 
     def acq_mono(self, device, num):
         """
-        acquisition function for camera
-               :brief      acquisition function of mono device
-               :param      device:     device object[Device]
-               :param      num:        number of acquisition images[int]
+        Acquisition function for the camera.
+
+        Sends a software trigger command to the device and gets a raw image.
+        Creates a numpy array with the data from the raw image and sums it to a specified area.
+        Extracts the spatial phase using FFT and updates the angle label.
+        Displays the image on the GUI and draws selection lines around the specified area.
+        Updates the phase vector.
+
+        Parameters
+        ----------
+        device : Device
+            The device object.
+        num : int
+            The number of acquisition images.
+
+        Returns
+        -------
+        None
         """
         for i in range(num):
             time.sleep(0.001)
@@ -1094,9 +1351,14 @@ class Feedbacker(object):
 
     def eval_spec(self):
         """
-        acquisition function for spectrometer
-               :brief      acquisition function of mono device
-               :param      num:        number of acquisition images[int]
+        Acquisition function for spectrometer.
+
+        This function acquires raw data from a spectrometer and calculates the phase angle of the Fourier transform of the data.
+        It continuously acquires data until `stop_acquire` flag is set to 1.
+
+        Returns:
+        --------
+        None
         """
         while True:
             time.sleep(0.01)
@@ -1139,27 +1401,77 @@ class Feedbacker(object):
             self.plot_fft_blit()
 
     def cam_on_close(self, device):
+        """
+        Closes camera device and stops acquisition.
+
+        Parameters:
+        -----------
+        device: Device object
+            Camera device object.
+
+        Returns:
+        --------
+        None
+        """
         device.stream_off()  # stop acquisition
         device.close_device()  # close device
 
     def cam_img(self):
+        """
+        Starts camera image acquisition and plots the acquired image.
+
+        Returns:
+        --------
+        None
+        """
         self.render_thread = threading.Thread(target=self.init_cam)
         self.render_thread.daemon = True
         self.render_thread.start()
         self.plot_phase()
 
     def spc_img(self):
+        """
+        Starts spectrometer image acquisition and plots the acquired image.
+
+        Returns:
+        --------
+        None
+        """
         self.render_thread = threading.Thread(target=self.start_measure)
         self.render_thread.daemon = True
         self.render_thread.start()
         self.plot_phase()
 
     def take_background(self):
+        """
+        Take a spectrum to be used as background for subsequent measurements.
+
+        Raises
+        ------
+        AttributeError
+            If no spectrum has been taken yet.
+
+        Returns
+        -------
+        None
+        """
         if not hasattr(self, 'trace'):
             raise AttributeError('Take a spectrum to be used as background')
         self.background = self.trace
 
     def auto_scale_spec_axis(self):
+        """
+        Automatically scale the spectrum axis.
+
+        Raises
+        ------
+        AttributeError
+            If no spectrum has been taken yet.
+
+        Returns
+        -------
+        None
+        """
         # this may take ~200ms, do not add it to the mainloop!
         if not hasattr(self, 'trace'):
             raise AttributeError('Take a spectrum before trying autoscale')
@@ -1173,6 +1485,18 @@ class Feedbacker(object):
         self.ax1r_blit = self.figr.canvas.copy_from_bbox(self.ax1r.bbox)
 
     def plot_MCP(self, mcpimage):
+        """
+        Plot the MCP image and harmonics plot.
+
+        Parameters
+        ----------
+        mcpimage : array_like
+            MCP image data.
+
+        Returns
+        -------
+        None
+        """
         self.axMCP.clear()
         self.axMCP.imshow(mcpimage, vmin=0, vmax=2, extent=[0, 1600, 0, 1000])
         self.axHarmonics.clear()
@@ -1191,6 +1515,13 @@ class Feedbacker(object):
         self.imgMCP.draw()
 
     def plot_fft(self):
+        """
+        Plot the Fourier transform of the spectrum.
+
+        Returns
+        -------
+        None
+        """
         # find maximum in the fourier trace
         maxindex = np.where(self.abs_im_fft == np.max(self.abs_im_fft[3:50]))[0][0]
         print(maxindex)
@@ -1205,6 +1536,13 @@ class Feedbacker(object):
         self.img1r.draw()
 
     def plot_fft_blit(self):
+        """
+        Plot the Fourier transform of the spectrum with blitting.
+
+        Returns
+        -------
+        None
+        """
         # find maximum in the fourier trace
         maxindex = np.where(self.abs_im_fft == np.max(self.abs_im_fft[5:50]))[0][0]
 
@@ -1223,6 +1561,16 @@ class Feedbacker(object):
         self.figr.canvas.flush_events()
 
     def plot_phase(self):
+        """
+        Plot the phase image using blitting.
+
+        Updates the plot element with the new phase data, blits the canvas,
+        and uses recursion to call itself after 50 milliseconds.
+
+        Returns
+        -------
+        None
+        """
         self.figp.canvas.restore_region(self.ax1p_blit)
         self.phase_line.set_data(np.arange(1000), self.im_phase)
         self.ax1p.draw_artist(self.phase_line)
@@ -1231,6 +1579,16 @@ class Feedbacker(object):
         self.win.after(50, self.plot_phase)
 
     def spec_activate(self):
+        """
+        Activate the spectrometer.
+
+        Initializes the spectrometer interface if necessary, activates the
+        spectrometer handle, and disables the state of the `ent_spc_ind` widget.
+
+        Returns
+        -------
+        None
+        """
         if not self.spec_interface_initialized:
             avs.AVS_Init()
         if self.active_spec_handle is None:
@@ -1240,6 +1598,16 @@ class Feedbacker(object):
             self.ent_spc_ind.config(state='disabled')
 
     def spec_deactivate(self):
+        """
+        Deactivate the spectrometer.
+
+        Stops the spectrometer measurement, deactivates the spectrometer handle,
+        and enables the `ent_spc_ind` widget.
+
+        Returns
+        -------
+        None
+        """
         if self.active_spec_handle is not None:
             avs.AVS_StopMeasure(self.active_spec_handle)
             avs.AVS_Deactivate(self.active_spec_handle)
@@ -1247,6 +1615,16 @@ class Feedbacker(object):
             self.active_spec_handle = None
 
     def start_measure(self):
+        """
+        Start the spectrometer measurement.
+
+        Activates the spectrometer, sets the measurement parameters, and starts
+        the measurement. Calls the `eval_spec()` method to evaluate the measured data.
+
+        Returns
+        -------
+        None
+        """
         self.spec_activate()
         int_time = float(self.ent_spc_exp.get())
         no_avg = int(self.ent_spc_avg.get())
@@ -1255,15 +1633,43 @@ class Feedbacker(object):
         self.eval_spec()
 
     def stop_measure(self):
+        """
+        Stop the spectrometer measurement.
+
+        Returns
+        -------
+        None
+        """
         if self.active_spec_handle is not None:
             avs.AVS_StopMeasure(self.active_spec_handle)
 
     def fast_scan(self):
+        """
+        Perform a fast scan.
+
+        Creates a linspace of 60 values between 0 and 2*pi, sets the `phi_ind` to 0,
+        and calls the `fast_scan_loop()` method.
+
+        Returns
+        -------
+        None
+        """
         self.phis = np.linspace(0, 2 * np.pi, 60)
         self.phi_ind = 0
         self.fast_scan_loop()
 
     def fast_scan_loop(self):
+        """
+        Perform a fast scan loop.
+
+        Sets the `strvar_setp` to the current `phi_ind` value, calls the
+        `set_setpoint()` method, increments the `phi_ind` by 1, and calls itself
+        after 100 milliseconds if the `phi_ind` is less than 60.
+
+        Returns
+        -------
+        None
+        """
         self.strvar_setp.set(self.phis[self.phi_ind])
         self.set_setpoint()
         self.phi_ind = self.phi_ind + 1
@@ -1271,18 +1677,58 @@ class Feedbacker(object):
             self.win.after(100, self.fast_scan_loop)
 
     def set_area1(self):
+        """
+        Set area 1.
+
+        Calls the `draw_polygon()` method and prints the resulting polygon.
+
+        Returns
+        -------
+        None
+        """
         poly_1 = draw_polygon.draw_polygon(self.ax1, self.fig)
         print(poly_1)
 
     def set_setpoint(self):
+        """
+        Set the set point.
+
+        Sets the `set_point` attribute to the float value of the `ent_setp` widget.
+
+        Returns
+        -------
+        None
+        """
         self.set_point = float(self.ent_setp.get())
 
     def set_pid_val(self):
+        """
+        Set the PID values.
+
+        Sets the `Kp` and `Ki` attributes of the `pid` object to the float values
+        of the `ent_pidp` and `ent_pidi` widgets, respectively.
+
+        Returns
+        -------
+        None
+        """
         self.pid.Kp = float(self.ent_pidp.get())
         self.pid.Ki = float(self.ent_pidi.get())
         # print(self.pid.tunings)
 
     def pid_strt(self):
+        """
+        Start the PID control loop.
+
+        Sets the set point and PID values, and then enters a loop that calculates
+        the correction based on the difference between the image angle and the set point.
+        Sets the `strvar_flat` to the correction, calls the `feedback()` method, and
+        breaks the loop if `stop_pid` is `True`.
+
+        Returns
+        -------
+        None
+        """
         self.set_setpoint()
         self.set_pid_val()
 
@@ -1297,6 +1743,15 @@ class Feedbacker(object):
                 break
 
     def enbl_pid(self):
+        """
+        Enable the PID control loop.
+
+        Sets the `stop_pid` to `False` and starts a new thread running the `pid_strt()` method.
+
+        Returns
+        -------
+        None
+        """
         # setting up a listener for new im_phase
         global stop_pid
         stop_pid = False
@@ -1305,10 +1760,29 @@ class Feedbacker(object):
         self.pid_thread.start()
 
     def pid_stop(self):
+        """
+        Stop the PID control loop.
+
+        Sets the `stop_pid` to `True`.
+
+        Returns
+        -------
+        None
+        """
         global stop_pid
         stop_pid = True
 
     def on_close(self):
+        """
+        Close the program.
+
+        Closes the figures, cleans up the APT module, deactivates the spectrometer,
+        and destroys the window.
+
+        Returns
+        -------
+        None
+        """
         # self.f.close()
         plt.close(self.figr)
         plt.close(self.figp)
