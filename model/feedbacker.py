@@ -1,4 +1,4 @@
-from model.settings import slm_size, bit_depth
+from ressources.settings import slm_size, bit_depth
 import drivers.avaspec_driver._avs_py as avs
 from drivers import gxipy_driver as gx
 from views import draw_polygon
@@ -19,8 +19,6 @@ import threading
 from datetime import date
 from collections import deque
 
-matplotlib.use("TkAgg")
-
 
 class Feedbacker(object):
     """
@@ -40,6 +38,7 @@ class Feedbacker(object):
         -------
         None
         """
+        matplotlib.use("TkAgg")
         self.CAMERA = CAMERA  # True for Camera Mode, False for Spectrometer Mode
         self.parent = parent
         self.slm_lib = slm_lib

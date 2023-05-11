@@ -1,4 +1,4 @@
-from model.settings import slm_size, wavelength, chip_width, chip_height, pixel_size, bit_depth
+from ressources.settings import slm_size, wavelength, chip_width, chip_height, pixel_size, bit_depth
 import os
 import numpy as np
 import tkinter as tk

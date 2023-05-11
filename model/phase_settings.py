@@ -3,8 +3,8 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 import matplotlib.image as mpimg
-from model.settings import slm_size, bit_depth, chip_width, chip_height, wavelength
-import model.gerchberg_saxton as gs
+from ressources.settings import slm_size, bit_depth, chip_width, chip_height, wavelength
+import model.hologram_generation as gs
 import model.aberration_correction as aberration
 
 types = ['Backgr', 'Flat', 'Tilt', 'Binary', 'Lens',

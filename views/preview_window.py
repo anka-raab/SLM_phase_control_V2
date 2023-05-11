@@ -1,12 +1,9 @@
-from model.settings import slm_size, bit_depth
+from ressources.settings import slm_size, bit_depth
 import numpy as np
 import matplotlib
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
-
-matplotlib.use("TkAgg")
-
 
 class PrevScreen(object):
     """
@@ -24,6 +21,8 @@ class PrevScreen(object):
         -------
         None
         """
+        matplotlib.use("TkAgg")
+
         # Save the parent object
         self.parent = parent
         # Create a new window object
@@ -52,7 +51,7 @@ class PrevScreen(object):
         """
         Update the displayed plots with the latest calculated intensity and phase values.
 
-        Returns:
+        Returns
         -------
         None
         """
@@ -101,11 +100,12 @@ class PrevScreen(object):
         """
         Close the previous window and notify the parent object.
 
-        Returns:
+        Returns
         -------
         None
             This method only closes the window and notifies the parent object.
         """
         self.win.destroy()
         self.parent.prev_win_closed()
+
 

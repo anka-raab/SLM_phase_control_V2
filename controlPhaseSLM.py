@@ -8,19 +8,16 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 import tkinter as tk
 from tkinter import ttk
-
 import tkinter.messagebox as tkMbox
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 
 import drivers.santec_driver._slm_py as slm
-from model import phase_settings, mcp
-from model.settings import slm_size, bit_depth
-from views import preview_window, questionbox, camera_control, andor_xuv_camera
-
-matplotlib.use("TkAgg")
+from model import phase_settings
+from ressources.settings import slm_size, bit_depth
+from views import preview_window, questionbox, camera_control, andor_xuv_camera, mcp
 
 
-class SLMControl:
+class SLMControl(object):
     """
     A class for controlling the SLM.
     """
@@ -38,6 +35,7 @@ class SLMControl:
         -------
         None
         """
+        matplotlib.use("TkAgg")
         self.main_win = parent
         self.main_win.protocol("WM_DELETE_WINDOW", self.exit_prog)
         self.main_win.title('SLM Phase Control')
@@ -235,7 +233,7 @@ class SLMControl:
         """
         # TODO - change to feedback window when on dlab computer
         self.camera_win = camera_control.CameraControl(self)
-        #self.feedback_win = feedbacker.Feedbacker(self)
+        # self.feedback_win = feedbacker.Feedbacker(self)
 
     def open_camera(self):
         """
@@ -283,7 +281,7 @@ class SLMControl:
         -------
         None
         """
-        print('prev closed')
+        print('Preview window closed')
         self.prev_win = None
 
     def open_pub(self):

@@ -8,9 +8,6 @@ from matplotlib.widgets import RectangleSelector
 import numpy as np
 from tkinter import filedialog
 
-pll.par["devices/dlls/andor_sdk2"] = "drivers/andor_driver/"
-print('dll trouvé')
-
 
 class AndorCameraViewer(object):
     def __init__(self, parent):
@@ -19,6 +16,8 @@ class AndorCameraViewer(object):
         self.win = tk.Toplevel()
 
         title = 'SLM Phase Control - Andor camera'
+        pll.par["devices/dlls/andor_sdk2"] = "drivers/andor_driver/"
+        print('dll trouvé')
 
         self.win.title(title)
         self.win.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -33,11 +32,11 @@ class AndorCameraViewer(object):
         print('XUV camera ready')
 
         # Create a main frame to group all other frames
-        self.main_frame = tk.Frame(self.win)
+        self.main_frame = ttk.Frame(self.win)
         self.main_frame.grid(row=0, column=0)
 
         # Create a frame for the camera display
-        self.plot_frame = tk.LabelFrame(self.main_frame, text="Camera display")
+        self.plot_frame = ttk.LabelFrame(self.main_frame, text="Camera display")
         self.fig, self.ax = plt.subplots(figsize=(4.5, 4.5))
         self.ax.set_xlabel('Pixels')
         self.ax.set_ylabel('Pixels')
@@ -48,7 +47,7 @@ class AndorCameraViewer(object):
         self.fig.tight_layout()
 
         # Create a frame for the sum plot
-        self.sum_plot_frame = tk.LabelFrame(self.main_frame, text="Sum over columns")
+        self.sum_plot_frame = ttk.LabelFrame(self.main_frame, text="Sum over columns")
         self.sum_fig, self.sum_ax = plt.subplots(figsize=(4.5, 2.5))
         self.sum_ax.set_xlabel('Pixels')
         self.sum_ax.set_ylabel('Counts')
@@ -57,61 +56,61 @@ class AndorCameraViewer(object):
         self.sum_fig.tight_layout()
 
         # Create a frame for general control
-        self.settings_frame = tk.Label(self.main_frame)
-        self.live_button = tk.Button(master=self.settings_frame, text="Live", command=self.start)
+        self.settings_frame = ttk.Label(self.main_frame)
+        self.live_button = ttk.Button(master=self.settings_frame, text="Live", command=self.start)
         self.live_button.grid(row=0, column=0, padx=5, pady=5)
-        self.stop_button = tk.Button(master=self.settings_frame, text="Stop", command=self.stop)
+        self.stop_button = ttk.Button(master=self.settings_frame, text="Stop", command=self.stop)
         self.stop_button.grid(row=0, column=1, padx=5, pady=5)
-        self.save_button = tk.Button(master=self.settings_frame, text="Save image", command=self.save_image)
+        self.save_button = ttk.Button(master=self.settings_frame, text="Save image", command=self.save_image)
         self.save_button.grid(row=0, column=2, padx=5, pady=5)
-        self.exit_button = tk.Button(master=self.settings_frame, text="EXIT", command=self.on_close)
+        self.exit_button = ttk.Button(master=self.settings_frame, text="EXIT", command=self.on_close)
         self.exit_button.grid(row=0, column=3, padx=5, pady=5)
 
         # Create a frame for the exposure time setting and the gain
-        self.camera_settings_frame = tk.LabelFrame(self.main_frame, text="Camera settings")
-        self.exposure_label = tk.Label(master=self.camera_settings_frame, text="Exposure time (s)")
+        self.camera_settings_frame = ttk.LabelFrame(self.main_frame, text="Camera settings")
+        self.exposure_label = ttk.Label(master=self.camera_settings_frame, text="Exposure time (s)")
         self.exposure_label.grid(row=0, column=0, padx=5, pady=5)
         self.exposure_time = 50E-3
         self.exposure_time_var = tk.StringVar(value=str(self.exposure_time))
-        self.exposure_entry = tk.Entry(master=self.camera_settings_frame, width=5, textvariable=self.exposure_time_var)
+        self.exposure_entry = ttk.Entry(master=self.camera_settings_frame, width=5, textvariable=self.exposure_time_var)
         self.exposure_entry.grid(row=0, column=1, padx=5, pady=5)
-        self.exposure_button = tk.Button(master=self.camera_settings_frame, text="Set exposure time",
+        self.exposure_button = ttk.Button(master=self.camera_settings_frame, text="Set exposure time",
                                          command=self.set_exposure_time)
         self.exposure_button.grid(row=0, column=2, padx=5, pady=5)
-        self.gain_label = tk.Label(master=self.camera_settings_frame, text="EMCCD Gain")
+        self.gain_label = ttk.Label(master=self.camera_settings_frame, text="EMCCD Gain")
         self.gain_label.grid(row=1, column=0, padx=5, pady=5)
         self.gain = self.cam.get_EMCCD_gain()[0]
         self.gain_var = tk.StringVar(value=str(self.gain))
-        self.gain_entry = tk.Entry(master=self.camera_settings_frame, width=5, textvariable=self.gain_var)
+        self.gain_entry = ttk.Entry(master=self.camera_settings_frame, width=5, textvariable=self.gain_var)
         self.gain_entry.grid(row=1, column=1, padx=5, pady=5)
-        self.gain_button = tk.Button(master=self.camera_settings_frame, text="Set gain", command=self.set_gain)
+        self.gain_button = ttk.Button(master=self.camera_settings_frame, text="Set gain", command=self.set_gain)
         self.gain_button.grid(row=1, column=2, padx=5, pady=5)
 
         # Create a frame for the ROI of the image
-        self.roi_frame = tk.LabelFrame(self.main_frame, text="Range of interest - XUV camera")
-        self.x_start_label = tk.Label(master=self.roi_frame, text="from x =")
+        self.roi_frame = ttk.LabelFrame(self.main_frame, text="Range of interest - XUV camera")
+        self.x_start_label = ttk.Label(master=self.roi_frame, text="from x =")
         self.x_start_label.grid(row=0, column=0, padx=5, pady=5)
         self.roi_x_start_var = tk.StringVar(value=str(0))
-        self.x_start_entry = tk.Entry(master=self.roi_frame, width=10, textvariable=self.roi_x_start_var)
+        self.x_start_entry = ttk.Entry(master=self.roi_frame, width=10, textvariable=self.roi_x_start_var)
         self.x_start_entry.grid(row=0, column=1, padx=5, pady=5)
-        self.x_end_label = tk.Label(master=self.roi_frame, text="to x =")
+        self.x_end_label = ttk.Label(master=self.roi_frame, text="to x =")
         self.x_end_label.grid(row=0, column=2, padx=5, pady=5)
         self.roi_x_end_var = tk.StringVar(value=str(self.cam.get_detector_size()[0]))
-        self.x_end_entry = tk.Entry(master=self.roi_frame, width=10, textvariable=self.roi_x_end_var)
+        self.x_end_entry = ttk.Entry(master=self.roi_frame, width=10, textvariable=self.roi_x_end_var)
         self.x_end_entry.grid(row=0, column=3, padx=5, pady=5)
-        self.y_start_label = tk.Label(master=self.roi_frame, text="from y =")
+        self.y_start_label = ttk.Label(master=self.roi_frame, text="from y =")
         self.y_start_label.grid(row=1, column=0, padx=5, pady=5)
         self.roi_y_start_var = tk.StringVar(value=str(0))
-        self.y_start_entry = tk.Entry(master=self.roi_frame, width=10, textvariable=self.roi_y_start_var)
+        self.y_start_entry = ttk.Entry(master=self.roi_frame, width=10, textvariable=self.roi_y_start_var)
         self.y_start_entry.grid(row=1, column=1, padx=5, pady=5)
-        self.y_end_label = tk.Label(master=self.roi_frame, text="to y =")
+        self.y_end_label = ttk.Label(master=self.roi_frame, text="to y =")
         self.y_end_label.grid(row=1, column=2, padx=5, pady=5)
         self.roi_y_end_var = tk.StringVar(value=str(self.cam.get_detector_size()[1]))
-        self.y_end_entry = tk.Entry(master=self.roi_frame, width=10, textvariable=self.roi_y_end_var)
+        self.y_end_entry = ttk.Entry(master=self.roi_frame, width=10, textvariable=self.roi_y_end_var)
         self.y_end_entry.grid(row=1, column=3, padx=5, pady=5)
-        self.roi_reset_button = tk.Button(master=self.roi_frame, text="Reset image ROI", command=self.reset_roi)
+        self.roi_reset_button = ttk.Button(master=self.roi_frame, text="Reset image ROI", command=self.reset_roi)
         self.roi_reset_button.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
-        self.roi_set_button = tk.Button(master=self.roi_frame, text="Set image ROI", command=self.set_roi)
+        self.roi_set_button = ttk.Button(master=self.roi_frame, text="Set image ROI", command=self.set_roi)
         self.roi_set_button.grid(row=2, column=2, columnspan=2, padx=5, pady=5)
         self.reset_roi()
 
@@ -122,49 +121,49 @@ class AndorCameraViewer(object):
                                               command=self.toggle_sum_plot)
         self.sum_checkbutton.grid(row=0, column=0, padx=5, pady=5)
         self.sum_start_var = tk.StringVar(value=str(0))
-        self.sum_start_label = tk.Label(master=self.sum_frame, text="from y =")
+        self.sum_start_label = ttk.Label(master=self.sum_frame, text="from y =")
         self.sum_start_label.grid(row=1, column=0, padx=5, pady=5)
-        self.sum_start_entry = tk.Entry(master=self.sum_frame, width=5, textvariable=self.sum_start_var)
+        self.sum_start_entry = ttk.Entry(master=self.sum_frame, width=5, textvariable=self.sum_start_var)
         self.sum_start_entry.grid(row=1, column=1, padx=5, pady=5)
-        self.sum_end_label = tk.Label(master=self.sum_frame, text="to y =")
+        self.sum_end_label = ttk.Label(master=self.sum_frame, text="to y =")
         self.sum_end_label.grid(row=1, column=2, padx=5, pady=5)
         self.sum_end_var = tk.StringVar(value=str(self.cam.get_detector_size()[1]))
-        self.sum_end_entry = tk.Entry(master=self.sum_frame, width=5, textvariable=self.sum_end_var)
+        self.sum_end_entry = ttk.Entry(master=self.sum_frame, width=5, textvariable=self.sum_end_var)
         self.sum_end_entry.grid(row=1, column=3, padx=5, pady=5)
-        self.sum_reset_button = tk.Button(master=self.sum_frame, text="Reset sum ROI", command=self.reset_sum_roi)
+        self.sum_reset_button = ttk.Button(master=self.sum_frame, text="Reset sum ROI", command=self.reset_sum_roi)
         self.sum_reset_button.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
-        self.sum_set_button = tk.Button(master=self.sum_frame, text="Set sum ROI", command=self.set_sum_roi)
+        self.sum_set_button = ttk.Button(master=self.sum_frame, text="Set sum ROI", command=self.set_sum_roi)
         self.sum_set_button.grid(row=2, column=2, columnspan=2, padx=5, pady=5)
         self.reset_sum_roi()
 
         # Create a frame for the averaging settings
-        self.average_frame = tk.LabelFrame(self.main_frame, text="Averaging settings")
+        self.average_frame = ttk.LabelFrame(self.main_frame, text="Averaging settings")
         self.avg_num = 10
-        self.avg_checkbutton = tk.Checkbutton(master=self.average_frame, text="Enable averaging",
+        self.avg_checkbutton = ttk.Checkbutton(master=self.average_frame, text="Enable averaging",
                                               variable=tk.BooleanVar(), command=self.toggle_avg_mode)
         self.avg_checkbutton.grid(row=0, column=0, padx=5, pady=5)
-        self.avg_label = tk.Label(master=self.average_frame, text="Number of averages")
+        self.avg_label = ttk.Label(master=self.average_frame, text="Number of averages")
         self.avg_label.grid(row=1, column=0, padx=5, pady=5)
         self.avg_var = tk.StringVar(value=str(self.avg_num))
-        self.avg_entry = tk.Entry(master=self.average_frame, width=5, textvariable=self.avg_var)
+        self.avg_entry = ttk.Entry(master=self.average_frame, width=5, textvariable=self.avg_var)
         self.avg_entry.grid(row=1, column=1, padx=5, pady=5)
-        self.set_avg_button = tk.Button(master=self.average_frame, text="Set average", command=self.set_avg_num)
+        self.set_avg_button = ttk.Button(master=self.average_frame, text="Set average", command=self.set_avg_num)
         self.set_avg_button.grid(row=0, column=1, padx=5, pady=5)
 
         # Create a frame for the cooling settings
-        self.cooling_frame = tk.LabelFrame(self.main_frame, text="Cooling status")
-        self.temp_label = tk.Label(master=self.cooling_frame, text="Current temperature")
+        self.cooling_frame = ttk.LabelFrame(self.main_frame, text="Cooling status")
+        self.temp_label = ttk.Label(master=self.cooling_frame, text="Current temperature")
         self.temp_label.grid(row=0, column=0, padx=5, pady=5)
         self.camera_temp = self.cam.get_temperature()
         self.camera_temp_var = tk.StringVar(value=str(self.camera_temp))
-        self.temp_value_label = tk.Label(master=self.cooling_frame, text="")
+        self.temp_value_label = ttk.Label(master=self.cooling_frame, text="")
         self.temp_value_label.grid(row=0, column=1, padx=5, pady=5)
 
-        self.temp_setpoint_label = tk.Label(master=self.cooling_frame, text="Current setpoint")
+        self.temp_setpoint_label = ttk.Label(master=self.cooling_frame, text="Current setpoint")
         self.temp_setpoint_label.grid(row=1, column=0, padx=5, pady=5)
         self.camera_temp_setpoint = self.cam.get_temperature_setpoint()
         self.camera_temp_setpoint_var = tk.StringVar(value=str(self.camera_temp_setpoint))
-        self.temp_value_setpoint_label = tk.Label(master=self.cooling_frame, text=self.camera_temp_setpoint_var)
+        self.temp_value_setpoint_label = ttk.Label(master=self.cooling_frame, text=self.camera_temp_setpoint_var)
         self.temp_value_setpoint_label.grid(row=1, column=1, padx=5, pady=5)
 
         self.update_temperature()

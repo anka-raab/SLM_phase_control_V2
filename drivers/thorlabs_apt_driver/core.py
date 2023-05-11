@@ -1,4 +1,5 @@
-from drivers import thorlabs_apt_driver as _APTAPI, thorlabs_apt_driver as _error_codes
+from drivers.thorlabs_apt_driver import _APTAPI
+from drivers.thorlabs_apt_driver import _error_codes
 
 import ctypes
 import ctypes.util

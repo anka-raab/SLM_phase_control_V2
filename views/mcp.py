@@ -12,7 +12,6 @@ import time
 
 from drivers.vimba_driver import *
 
-matplotlib.use("TkAgg")
 
 
 class Mcp(object):
@@ -20,6 +19,8 @@ class Mcp(object):
     def __init__(self, parent):
         self.parent = parent
         self.win = tk.Toplevel()
+        matplotlib.use("TkAgg")
+
         self.win.title("MCP camera - harmonics")
         self.win.protocol("WM_DELETE_WINDOW", self.on_close)
         self.rect_id = 0
