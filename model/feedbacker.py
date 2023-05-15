@@ -358,7 +358,7 @@ class Feedbacker(object):
             frm_stage, width=5, validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_Delay_should)
-        self.strvar_Delay_Nr = tk.StringVar(self.win, '83820773')
+        self.strvar_Delay_Nr = tk.StringVar(self.win, '83837719')
         self.ent_Delay_Nr = tk.Entry(
             frm_stage, width=9, validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
@@ -874,7 +874,7 @@ class Feedbacker(object):
         # this is the image taking part
         with Vimba.get_instance() as vimba:
             cams = vimba.get_all_cameras()
-            image = np.zeros([1000, 1600])
+            image = np.zeros([1200, 1600])
             global meas_has_started
             self.d_phase = deque()
             meas_has_started = True
