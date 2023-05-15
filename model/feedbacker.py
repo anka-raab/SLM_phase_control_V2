@@ -27,16 +27,21 @@ class Feedbacker(object):
 
     def __init__(self, parent, slm_lib, CAMERA):
         """
-        Initializes the Feedbacker object with its attributes.
+        Initialize the object.
 
         Parameters
         ----------
-        parent : tkinter.Tk
-            The tkinter parent window.
+        parent : object
+            The parent object.
+        slm_lib : object
+            The SLMLib object for controlling the spatial light modulator.
+        CAMERA : str
+            The name or identifier of the camera.
 
         Returns
         -------
         None
+
         """
         matplotlib.use("TkAgg")
         self.CAMERA = CAMERA  # True for Camera Mode, False for Spectrometer Mode
@@ -46,11 +51,18 @@ class Feedbacker(object):
         self.set_point = 0
         if self.CAMERA:
             title = 'SLM Phase Control - Feedbacker (spatial)'
+            print('Opening spatial feedbacker...')
         else:
             title = 'SLM Phase Control - Feedbacker (spectral)'
+            print('Opening spectral feedbacker...')
+
         self.win.title(title)
         self.win.protocol("WM_DELETE_WINDOW", self.on_close)
         self.rect_id = 0
+
+        self.WPG = None
+        self.WPR = None
+        self.Delay = None
 
         global meas_has_started
         meas_has_started = False
@@ -65,6 +77,9 @@ class Feedbacker(object):
         frm_mcp_image = tk.Frame(self.win)
         frm_mid = tk.Frame(self.win)
 
+        #new frame for scan related parameters
+        frm_scans = tk.Frame(self.win)
+
         if self.CAMERA:
             frm_cam = tk.Frame(self.win)
             frm_cam_but = tk.Frame(frm_cam)
@@ -76,8 +91,9 @@ class Feedbacker(object):
 
         frm_ratio = tk.LabelFrame(frm_mid, text='Phase extraction')
         frm_pid = tk.LabelFrame(frm_mid, text='PID controller')
-        frm_meas = tk.LabelFrame(frm_mid, text='Phase Scan')
-        frm_stage = tk.LabelFrame(frm_mid, text='Stage Control')
+
+        frm_meas = tk.LabelFrame(frm_scans, text='Phase Scan')
+        frm_stage = tk.LabelFrame(frm_scans, text='Stage Control')
 
         vcmd = (self.win.register(self.parent.callback))
 
@@ -271,17 +287,17 @@ class Feedbacker(object):
         # scan parameters
         self.strvar_WPR_from = tk.StringVar(self.win, '0')
         self.ent_WPR_from = tk.Entry(
-            frm_stage, width=9, validate='all',
+            frm_stage, width=5, validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_WPR_from)
         self.strvar_WPR_to = tk.StringVar(self.win, '45')
         self.ent_WPR_to = tk.Entry(
-            frm_stage, width=9, validate='all',
+            frm_stage, width=5, validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_WPR_to)
         self.strvar_WPR_steps = tk.StringVar(self.win, '10')
         self.ent_WPR_steps = tk.Entry(
-            frm_stage, width=9, validate='all',
+            frm_stage, width=5, validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_WPR_steps)
         self.var_wprscan = tk.IntVar()
@@ -314,17 +330,17 @@ class Feedbacker(object):
         # scan parameters
         self.strvar_WPG_from = tk.StringVar(self.win, '0')
         self.ent_WPG_from = tk.Entry(
-            frm_stage, width=9, validate='all',
+            frm_stage, width=5, validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_WPG_from)
         self.strvar_WPG_to = tk.StringVar(self.win, '45')
         self.ent_WPG_to = tk.Entry(
-            frm_stage, width=9, validate='all',
+            frm_stage, width=5, validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_WPG_to)
         self.strvar_WPG_steps = tk.StringVar(self.win, '10')
         self.ent_WPG_steps = tk.Entry(
-            frm_stage, width=9, validate='all',
+            frm_stage, width=5, validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_WPG_steps)
         self.var_wpgscan = tk.IntVar()
@@ -350,17 +366,17 @@ class Feedbacker(object):
         # scan parameters
         self.strvar_Delay_from = tk.StringVar(self.win, '6.40')
         self.ent_Delay_from = tk.Entry(
-            frm_stage, width=9, validate='all',
+            frm_stage, width=5, validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_Delay_from)
         self.strvar_Delay_to = tk.StringVar(self.win, '6.45')
         self.ent_Delay_to = tk.Entry(
-            frm_stage, width=9, validate='all',
+            frm_stage, width=5, validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_Delay_to)
         self.strvar_Delay_steps = tk.StringVar(self.win, '10')
         self.ent_Delay_steps = tk.Entry(
-            frm_stage, width=9, validate='all',
+            frm_stage, width=5, validate='all',
             validatecommand=(vcmd, '%d', '%P', '%S'),
             textvariable=self.strvar_Delay_steps)
         self.var_delayscan = tk.IntVar()
@@ -378,7 +394,10 @@ class Feedbacker(object):
             frm_spc_but.grid(row=0, column=0, sticky='nsew')
 
         frm_plt.grid(row=1, column=0, sticky='nsew')
-        frm_mcp_image.grid(row=1, column=1, sticky='nsew')
+        frm_mcp_image.grid(row=1, column=2, sticky='nsew')
+        frm_scans.grid(row=1, column=1)
+        frm_meas.grid(row=0, column=0, padx=5)
+        frm_stage.grid(row=1, column=0, padx=5)
 
         frm_mid.grid(row=2, column=0, sticky='nsew')
         frm_bot.grid(row=3, column=0)
@@ -391,8 +410,6 @@ class Feedbacker(object):
             frm_plt_set.grid(row=0, column=0, padx=5)
             frm_ratio.grid(row=0, column=1, padx=5)
             frm_pid.grid(row=0, column=2, padx=5)
-            frm_meas.grid(row=0, column=3, padx=5)
-            frm_stage.grid(row=0, column=4, padx=5)
 
             frm_ratio.config(width=162, height=104)
 
@@ -636,9 +653,10 @@ class Feedbacker(object):
         try:
             self.WPR = apt.Motor(int(self.ent_WPR_Nr.get()))
             self.but_WPR_Ini.config(fg='green')
+            print("WPR connected")
         except:
             self.but_WPR_Ini.config(fg='red')
-            print("not able to initalize motor")
+            print("Not able to initalize WPR")
 
     def read_WPR(self):
         """
@@ -657,7 +675,7 @@ class Feedbacker(object):
             pos = self.WPR.position
             self.strvar_WPR_is.set(pos)
         except:
-            print("Position cound not be read")
+            print("Impossible to read WPR position")
 
     def move_WPR(self):
         """
@@ -674,10 +692,12 @@ class Feedbacker(object):
         """
         try:
             pos = float(self.strvar_WPR_should.get())
+            print("WPR is moving..")
             self.WPR.move_to(pos, True)
+
             self.read_WPR()
         except:
-            print("Moving the stage failed :(")
+            print("Impossible to move WPR :(")
 
     def init_WPG(self):
         """
@@ -695,9 +715,10 @@ class Feedbacker(object):
         try:
             self.WPG = apt.Motor(int(self.ent_WPG_Nr.get()))
             self.but_WPG_Ini.config(fg='green')
+            print("WPG connected")
         except:
             self.but_WPG_Ini.config(fg='red')
-            print("not able to initalize motor")
+            print("Not able to initalize WPG")
 
     def read_WPG(self):
         """
@@ -716,7 +737,7 @@ class Feedbacker(object):
             pos = self.WPG.position
             self.strvar_WPG_is.set(pos)
         except:
-            print("Position cound not be read")
+            print("Impossible to read WPG position")
 
     def move_WPG(self):
         """
@@ -733,10 +754,12 @@ class Feedbacker(object):
         """
         try:
             pos = float(self.strvar_WPG_should.get())
+            print("WPG is moving..")
             self.WPG.move_to(pos, True)
+
             self.read_WPG()
         except:
-            print("Moving the stage failed :(")
+            print("Impossible to move WPG :(")
 
     def init_Delay(self):
         """
@@ -753,10 +776,11 @@ class Feedbacker(object):
         """
         try:
             self.Delay = apt.Motor(int(self.ent_Delay_Nr.get()))
+            print("Delay connected")
             self.but_Delay_Ini.config(fg='green')
         except:
             self.but_Delay_Ini.config(fg='red')
-            print("not able to initalize motor")
+            print("Not able to initalize Delay")
 
     def read_Delay(self):
         """
@@ -775,7 +799,7 @@ class Feedbacker(object):
             pos = self.Delay.position
             self.strvar_Delay_is.set(pos)
         except:
-            print("Position cound not be read")
+            print("Impossible to read Delay position")
 
     def move_Delay(self):
         """
@@ -792,12 +816,33 @@ class Feedbacker(object):
         """
         try:
             pos = float(self.strvar_Delay_should.get())
+            print("Delay is moving..")
             self.Delay.move_to(pos, True)
+
             self.read_Delay()
         except:
-            print("Moving the stage failed :(")
+            print("Impossible to move Delay :(")
 
     # def scan(self):
+
+    def disable_motors(self):
+        """
+        Disconnect all the motors.
+
+        Returns
+        -------
+        None
+        """
+        if self.WPG is not None:
+            self.WPG.disable()
+            print('WPG disconnected')
+        if self.WPR is not None:
+            self.WPR.disable()
+            print('WPR disconnected')
+        if self.Delay is not None:
+            self.Delay.disable()
+            print('Delay disconnected')
+
 
     def take_image(self, avgs, record_phase=True):
         """
@@ -1785,7 +1830,7 @@ class Feedbacker(object):
         # self.f.close()
         plt.close(self.figr)
         plt.close(self.figp)
-        apt._cleanup()
+        self.disable_motors()
         if self.CAMERA:
             None
         else:
@@ -1793,3 +1838,4 @@ class Feedbacker(object):
             avs.AVS_Done()
         self.win.destroy()
         self.parent.feedback_win = None
+        print('Feedbacker closed')

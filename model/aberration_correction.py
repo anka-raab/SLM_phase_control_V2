@@ -37,6 +37,7 @@ class AberrationWindow(object):
         """
         Initialisation of the AberrationWindow class
         """
+        print('Opening aberration control..')
         self.parent = parent
         self.win = tk.Toplevel()
         self.win.protocol("WM_DELETE_WINDOW", self.close_aberration_window)
@@ -236,3 +237,4 @@ class AberrationWindow(object):
         """
         self.win.destroy()
         self.parent.gen_win = None
+        print('Aberration control closed')

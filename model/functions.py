@@ -3,6 +3,7 @@ from scipy import ndimage
 from numpy.fft import fftshift, fft2, ifft2
 from time import time
 
+
 def find_second_order_moment(image):
     """
     Calculate the second order moments (also known as variances) of a 2D array.
@@ -361,7 +362,7 @@ def wgs_algo(initial_image_focus, target_image_focus, max_iter=1000, crit_conver
 
     phi_slm = np.ones_like(initial_image_slm, dtype=np.float64)
     t1 = time()
-    for i in np.linspace(0, max_iter-1, max_iter, dtype=np.int32):
+    for i in np.linspace(0, max_iter - 1, max_iter, dtype=np.int32):
 
         # Impose initial image modulus in SLM plane and apply weight
         B = initial_image_slm * np.exp(1j * phi_slm)
@@ -386,7 +387,7 @@ def wgs_algo(initial_image_focus, target_image_focus, max_iter=1000, crit_conver
 
         if crit_convergence is not None and corr >= crit_convergence:
             t2 = time()
-            print(f'Correlation coefficient = {corr} reached \nwith {i+1} iterations in {t2-t1} seconds')
+            print(f'Correlation coefficient = {corr} reached \nwith {i + 1} iterations in {t2 - t1} seconds')
             break
 
     return np.abs(E_focus), np.abs(E_slm), phi_focus, phi_slm

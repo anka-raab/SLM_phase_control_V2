@@ -1262,7 +1262,7 @@ class TypeZernike(BaseType):
         p9 = coeffs[8] * rho ** 3 * np.cos(3 * theta)
         p10 = coeffs[9] * rho ** 3 * np.sin(3 * theta)
 
-        phase = (p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10) * bit_depth
+        phase = (p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10)
 
         return phase
 

@@ -17,7 +17,6 @@ class AndorCameraViewer(object):
 
         title = 'SLM Phase Control - Andor camera'
         pll.par["devices/dlls/andor_sdk2"] = "drivers/andor_driver/"
-        print('dll trouvé')
 
         self.win.title(title)
         self.win.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -191,6 +190,30 @@ class AndorCameraViewer(object):
         self.show_sum_plot = False
 
     def update_plot(self):
+        """
+        Update the plot.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        If `live` attribute is True, it waits for a frame from the camera and updates the first plot
+        with the frame data. If `average_mode` attribute is True, it calculates the average frame from
+        multiple frames and uses it for updating the plot.
+
+        If `show_sum_plot` attribute is True, it calculates the sums of pixels along the vertical axis
+        within the range specified by `sum_start_index` and `sum_end_index` attributes. It then updates
+        the second plot with the sum data, adding horizontal lines indicating the start and end indices
+        of the summed region.
+
+        Raises
+        ------
+        TypeError
+            If a TypeError occurs during the update process, it is caught, and an error message is printed.
+
+        """
         if self.live:
             self.cam.wait_for_frame()
             frame = self.cam.read_oldest_image()
@@ -239,7 +262,13 @@ class AndorCameraViewer(object):
             self.win.after(200, self.update_plot)
 
     def update_temperature(self):
-        # Get the current temperature from the camera
+        """
+        Update the temperature display based on the current camera temperature.
+
+        Returns
+        -------
+        None
+        """
         self.camera_temp = self.cam.get_temperature()
 
         # Update the label with the current temperature
@@ -249,6 +278,13 @@ class AndorCameraViewer(object):
         self.win.after(5000, self.update_temperature)
 
     def save_image(self):
+        """
+        Save the current image displayed in the plot.
+
+        Returns
+        -------
+        None
+        """
         filename = filedialog.asksaveasfilename(defaultextension='.bmp')
         if filename:
             image_array = self.img.get_array()
@@ -256,17 +292,38 @@ class AndorCameraViewer(object):
             print('Image saved')
 
     def start(self):
+        """
+        Start the acquisition process.
+
+        Returns
+        -------
+        None
+        """
         self.live = True
         self.cam.start_acquisition()
         self.update_plot()
         print('Acquisition started')
 
     def stop(self):
+        """
+        Stop the acquisition process.
+
+        Returns
+        -------
+        None
+        """
         self.live = False
         self.cam.stop_acquisition()
         print('Acquisition stopped')
 
     def toggle_sum_plot(self):
+        """
+        Toggle the display of the sum plot.
+
+        Returns
+        -------
+        None
+        """
         self.show_sum_plot = not self.show_sum_plot
         if not self.show_sum_plot:
             self.sum_ax.clear()
@@ -276,22 +333,54 @@ class AndorCameraViewer(object):
             self.canvas.draw()
 
     def toggle_avg_mode(self):
+        """
+        Toggle the average mode for frame acquisition.
+
+        Returns
+        -------
+        None
+
+        """
         self.set_avg_num()
         self.average_mode = not self.average_mode
         print('Acquisition mode :', self.cam.get_acquisition_mode())
 
     def set_avg_num(self):
+        """
+        Set the number of frames used for averaging.
+
+        Returns
+        -------
+        None
+
+        """
         new_avg_num = int(self.avg_var.get())
         self.avg_num = new_avg_num
         print('Average number of frames changed')
 
     def set_exposure_time(self):
+        """
+        Set the exposure time for the camera.
+
+        Returns
+        -------
+        None
+
+        """
         self.cam.stop_acquisition()
         self.cam.set_exposure(self.exposure_entry.get())
         self.cam.start_acquisition()
         print(f'Exposure time updated, new value = {self.cam.get_exposure()}')
 
     def set_gain(self):
+        """
+        Set the gain for the camera.
+
+        Returns
+        -------
+        None
+
+        """
         self.cam.stop_acquisition()
         print(f'{self.cam.get_EMCCD_gain()}')
         self.cam.set_EMCCD_gain(self.gain_entry.get())
@@ -299,6 +388,14 @@ class AndorCameraViewer(object):
         print(f'EMCCD gain updated, new value = {self.cam.get_EMCCD_gain()}')
 
     def set_roi(self):
+        """
+        Set the Region of Interest (ROI) for the camera.
+
+        Returns
+        -------
+        None
+
+        """
         x_start = int(self.roi_x_start_var.get())
         x_end = int(self.roi_x_end_var.get())
         y_start = int(self.roi_y_start_var.get())
@@ -312,6 +409,14 @@ class AndorCameraViewer(object):
         print('ROI updated')
 
     def reset_roi(self):
+        """
+        Reset the Region of Interest (ROI) to the default values.
+
+        Returns
+        -------
+        None
+
+        """
 
         x_lim = [self.roi_x_start_var.set(str(0)), self.roi_x_end_var.set(str(self.cam.get_detector_size()[0]))]
         y_lim = [self.roi_y_start_var.set(str(0)), self.roi_y_end_var.set(str(self.cam.get_detector_size()[1]))]
@@ -324,6 +429,21 @@ class AndorCameraViewer(object):
         print('ROI set to default')
 
     def on_select(self, e_click, e_release):
+        """
+        Perform actions when the user selects a region of interest (ROI) on the plot.
+
+        Parameters
+        ----------
+        e_click : matplotlib.backend_bases.MouseEvent
+            The mouse click event.
+        e_release : matplotlib.backend_bases.MouseEvent
+            The mouse release event.
+
+        Returns
+        -------
+        None
+
+        """
         x1, y1 = int(e_click.xdata), int(e_click.ydata)
         x2, y2 = int(e_release.xdata), int(e_release.ydata)
 
@@ -339,23 +459,55 @@ class AndorCameraViewer(object):
         self.set_roi()
 
     def set_sum_roi(self):
+        """
+        Set the start and end indices for the sum region of interest (ROI).
+
+        Returns
+        -------
+        None
+
+        """
         self.sum_start_index = int(self.sum_start_var.get())
         self.sum_end_index = int(self.sum_end_var.get())
         print('Sum ROI updated')
 
     def reset_sum_roi(self):
+        """
+        Reset the start and end indices for the sum region of interest (ROI) to default values.
+
+        Returns
+        -------
+        None
+
+        """
         self.sum_start_var.set(str(0))
         self.sum_end_var.set(self.cam.get_detector_size()[1])
         self.set_sum_roi()
         print('Sum ROI set to default')
 
     def next_frame(self):
+        """
+        Update the plot with the next frame from the camera.
+
+        Returns
+        -------
+        None
+
+        """
         self.cam.wait_for_frame()
         frame = self.cam.read_oldest_image()
         self.img.set_data(frame)
         self.canvas.draw()
 
     def on_close(self):
+        """
+        Handle the event when the window is closed.
+
+        Returns
+        -------
+        None
+
+        """
         if self.cam is None:
             self.win.destroy()
             self.parent.andor_camera = None

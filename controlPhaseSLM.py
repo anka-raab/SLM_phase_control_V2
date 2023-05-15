@@ -1,3 +1,4 @@
+print('Importing the libraries...')
 import json
 import os
 
@@ -12,9 +13,10 @@ import tkinter.messagebox as tkMbox
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 
 import drivers.santec_driver._slm_py as slm
-from model import phase_settings
+from model import phase_settings, feedbacker
 from ressources.settings import slm_size, bit_depth
 from views import preview_window, questionbox, camera_control, andor_xuv_camera, mcp
+print('Done !')
 
 
 class SLMControl(object):
@@ -35,6 +37,7 @@ class SLMControl(object):
         -------
         None
         """
+        print('Interface initialization...')
         matplotlib.use("TkAgg")
         self.main_win = parent
         self.main_win.protocol("WM_DELETE_WINDOW", self.exit_prog)
@@ -50,50 +53,50 @@ class SLMControl(object):
         self.phase_map = np.zeros(slm_size)
 
         # creating frames
-        frm_top = ttk.Frame(self.main_win)
+        self.frm_top = ttk.Frame(self.main_win)
         self.frm_mid = ttk.Notebook(self.main_win)
-        frm_bot = ttk.Frame(self.main_win)
-        frm_topb = ttk.Frame(frm_top)
+        self.frm_bot = ttk.Frame(self.main_win)
+        self.frm_topb = ttk.Frame(self.frm_top)
         self.frm_side = ttk.Frame(self.main_win)
 
         # Creating labels
-        lbl_screen = ttk.Label(frm_top, text='SLM display number:')
+        lbl_screen = ttk.Label(self.frm_top, text='SLM display number:')
 
         # Creating buttons
-        but_mcp = ttk.Button(frm_bot, text='MCP', command=self.open_mcp)
-        but_camera = ttk.Button(frm_bot, text='Beam profile', command=self.open_camera)
-        but_xuv_camera = ttk.Button(frm_bot, text='XUV Camera', command=self.open_xuv_camera)
-        but_feedback = ttk.Button(frm_bot, text='Feedbacker', command=self.open_feedback)
-        but_prev = ttk.Button(frm_bot, text='Preview', command=self.open_prev)
-        but_pub = ttk.Button(frm_bot, text='Publish', command=self.open_pub)
-        but_exit = ttk.Button(frm_bot, text='EXIT', command=self.exit_prog)
-        but_save = ttk.Button(frm_topb, text='Save Settings', command=self.save)
-        but_load = ttk.Button(frm_topb, text='Load Settings', command=self.load)
+        # but_mcp = ttk.Button(frm_bot, text='MCP', command=self.open_mcp)
+        but_camera = ttk.Button(self.frm_bot, text='Camera control', command=self.open_camera)
+        but_xuv_camera = ttk.Button(self.frm_bot, text='XUV Camera', command=self.open_xuv_camera)
+        but_feedback = ttk.Button(self.frm_bot, text='Feedbacker', command=self.open_feedback)
+        # but_prev = ttk.Button(frm_bot, text='Preview', command=self.open_prev)
+        but_pub = ttk.Button(self.frm_bot, text='Publish', command=self.open_pub)
+        but_exit = ttk.Button(self.frm_bot, text='EXIT', command=self.exit_prog)
+        but_save = ttk.Button(self.frm_topb, text='Save Settings', command=self.save)
+        but_load = ttk.Button(self.frm_topb, text='Load Settings', command=self.load)
         # but_clean_settings = tk.Button(frm_bot, text='Clean settings file', command=self.delete_last_settings_file)
 
         # Creating entry
-        self.ent_scr = ttk.Spinbox(frm_top, width=5, from_=1, to=8)
+        self.ent_scr = ttk.Spinbox(self.frm_top, width=5, from_=1, to=8)
 
         # Setting up general structure
-        frm_top.grid(row=2, column=0, sticky='ew')
+        self.frm_top.grid(row=2, column=0, sticky='nsew')
         self.frm_mid.grid(row=1, column=0, sticky='nsew')
-        frm_bot.grid(row=4, column=0)
+        self.frm_bot.grid(row=4, column=0, sticky='nsew')
         self.frm_side.grid(row=3, column=0, sticky='nsew')
 
         # Setting up top frame
         lbl_screen.grid(row=0, column=0, sticky='e', padx=10, pady=10)
         self.ent_scr.grid(row=0, column=1, sticky='w', padx=(0, 10))
-        self.setup_box(frm_top)
-        frm_topb.grid(row=1, column=1, sticky='nsew')
-        but_save.grid(row=0, padx=5, pady=5)
-        but_load.grid(row=1, padx=5)
+        self.setup_box(self.frm_top)
+        self.frm_topb.grid(row=1, column=1, sticky='nsew')
+        but_save.grid(row=0, sticky='ew')
+        but_load.grid(row=1, sticky='ew')
 
         # Setting up scan and phase figure
         self.scan_options()
-        self.fig = Figure(figsize=(3, 2.5), dpi=110)
+        self.fig = Figure(figsize=(2.5, 2), dpi=110)
         self.ax = self.fig.add_subplot(111)
 
-        self.img = FigureCanvasTkAgg(self.fig, frm_topb)
+        self.img = FigureCanvasTkAgg(self.fig, self.frm_topb)
         self.tk_widget_fig = self.img.get_tk_widget()
         self.tk_widget_fig.grid(row=2, sticky='ew')
 
@@ -101,16 +104,17 @@ class SLMControl(object):
         self.ax.axes.yaxis.set_visible(False)
 
         # Setting up bot frame
-        but_mcp.grid(row=0, column=0, padx=5, pady=5)
-        but_xuv_camera.grid(row=0, column=1, padx=5, pady=5)
-        but_camera.grid(row=0, column=2, padx=5, pady=5)
-        but_feedback.grid(row=0, column=3, padx=5, pady=5)
-        but_prev.grid(row=0, column=4, padx=5, pady=5)
-        but_pub.grid(row=0, column=5, padx=5, pady=5)
-        but_exit.grid(row=0, column=6, padx=5, pady=5)
+        #but_mcp.grid(row=0, column=0, padx=5, pady=5)
+        but_xuv_camera.grid(row=0, column=0, padx=5, pady=5)
+        but_camera.grid(row=0, column=1, padx=5, pady=5)
+        but_feedback.grid(row=0, column=2, padx=5, pady=5)
+        #but_prev.grid(row=0, column=4, padx=5, pady=5)
+        but_pub.grid(row=0, column=3, padx=5, pady=5)
+        but_exit.grid(row=0, column=4, padx=5, pady=5)
 
         # but_clean_settings.grid(row=0, column=6, padx=5, pady=5)
 
+        print('Done !')
         # binding keys
         def left_handler(event):
             """
@@ -232,8 +236,8 @@ class SLMControl(object):
         None
         """
         # TODO - change to feedback window when on dlab computer
-        self.camera_win = camera_control.CameraControl(self)
-        # self.feedback_win = feedbacker.Feedbacker(self)
+        #self.camera_win = camera_control.CameraControl(self)
+        self.feedback_win = feedbacker.Feedbacker(self, slm, answer)
 
     def open_camera(self):
         """
@@ -541,8 +545,8 @@ class SLMControl(object):
         self.but_crt.grid(row=2, column=0, sticky='ew')
         but_openload.grid(row=2, column=1, columnspan=2, sticky='ew')
 
-        self.but_scan.grid(row=5, column=0, padx=5, pady=5)
-        but_stop_scan.grid(row=5, column=1, columnspan=2, padx=5, pady=5)
+        self.but_scan.grid(row=5, column=0, padx=5, pady=5, sticky='ew')
+        but_stop_scan.grid(row=5, column=1, columnspan=2, padx=5, pady=5, sticky='ew')
 
         lbl_scpar.grid(row=0, column=0, sticky='e')
         lbl_val.grid(row=1, column=0, sticky='e')
@@ -805,9 +809,7 @@ class SLMControl(object):
         """
         self.save('./last_settings.txt')
         self.pub_win_closed()
-        if self.feedback_win is not None:
-            self.feedback_win.on_close()
-
+        self.feedback_win = None
         self.prev_win = None
         self.andor_camera = None
         self.camera_win = None
